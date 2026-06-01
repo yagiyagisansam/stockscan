@@ -1,0 +1,43 @@
+name: 株価テクニカル分析
+
+on:
+  schedule:
+    # 毎日18:00 JST (= 09:00 UTC) 平日のみ
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 依存ライブラリインストール
+        run: pip install yfinance pandas numpy
+
+      - name: テクニカル分析実行
+        env:
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: 587
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          TO_EMAIL:  ${{ secrets.TO_EMAIL }}
+        run: python scripts/analyze.py
+
+      - name: 結果をコミット・プッシュ
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name  "github-actions[bot]"
+          git add data/results.json
+          git diff --staged --quiet || git commit -m "chore: update stock analysis results $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')"
+          git push

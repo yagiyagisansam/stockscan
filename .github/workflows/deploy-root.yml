@@ -1,0 +1,44 @@
+name: yagiyagisansam.github.io へ同期
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'data/**'
+  workflow_run:
+    workflows: ["株価テクニカル分析"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: stockscan チェックアウト
+        uses: actions/checkout@v4
+        with:
+          path: stockscan
+
+      - name: yagiyagisansam.github.io チェックアウト
+        uses: actions/checkout@v4
+        with:
+          repository: yagiyagisansam/yagiyagisansam.github.io
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          path: pages
+
+      - name: index.html を stocks.html として同期
+        run: |
+          cp stockscan/index.html pages/stocks.html
+          mkdir -p pages/data
+          cp stockscan/data/results.json pages/data/results.json 2>/dev/null || true
+          cp stockscan/data/stocks.json  pages/data/stocks.json  2>/dev/null || true
+
+      - name: コミット & プッシュ
+        run: |
+          cd pages
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "github-actions[bot]"
+          git add stocks.html data/
+          git diff --staged --quiet || git commit -m "sync: stockscan から stocks.html を更新"
+          git push
