@@ -1,1 +1,1705 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>StockScan JP | 日本株テクニカル分析</title>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+/* ── リセット ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{
+  font-family:-apple-system,'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;
+  background:#ECEFF1;color:#263238;
+}
+
+/* ── ヘッダー ── */
+.hdr{
+  background:#0D47A1;color:#fff;
+  padding:10px 14px;
+  display:flex;justify-content:space-between;align-items:center;
+  gap:8px;flex-wrap:wrap;
+}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-title{font-size:16px;font-weight:bold}
+.hdr-sub{font-size:11px;color:#90CAF9}
+.hdr-right{display:flex;gap:8px;align-items:center}
+
+/* ── ボタン共通 ── */
+.btn{
+  border:none;border-radius:6px;
+  padding:0 14px;height:36px;font-size:13px;font-weight:bold;
+  cursor:pointer;font-family:inherit;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:6px;
+  transition:background .15s;
+}
+.btn-outline{
+  background:rgba(255,255,255,.15);color:#fff;
+  border:1px solid rgba(255,255,255,.35);
+}
+.btn-outline:hover{background:rgba(255,255,255,.25)}
+.btn-primary{background:#1565C0;color:#fff}
+.btn-primary:hover{background:#0D47A1}
+.btn-danger{background:#c62828;color:#fff;font-size:12px;padding:0 10px;height:30px}
+.btn-danger:hover{background:#b71c1c}
+.btn-sm{height:30px;font-size:12px;padding:0 10px}
+
+/* ── メインレイアウト ── */
+.main{max-width:960px;margin:0 auto;padding:16px 12px}
+
+/* ── バッジ（マッチ数） ── */
+.match-header{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:12px;flex-wrap:wrap;
+}
+.badge-count{
+  background:#1565C0;color:#fff;
+  border-radius:99px;padding:4px 14px;
+  font-size:13px;font-weight:bold;
+}
+.badge-date{font-size:12px;color:#546E7A}
+.badge-none{
+  background:#90A4AE;color:#fff;
+  border-radius:99px;padding:4px 14px;
+  font-size:13px;font-weight:bold;
+}
+
+/* ── ストックカード ── */
+.stock-card{
+  background:#fff;border-radius:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.12);
+  margin-bottom:14px;overflow:hidden;
+}
+.card-header{
+  padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:6px;cursor:pointer;
+  border-bottom:1px solid #E3F2FD;
+}
+.card-header:hover{background:#F5F9FF}
+.card-code{font-size:17px;font-weight:bold;color:#0D47A1}
+.card-name{font-size:13px;color:#546E7A;margin-left:6px}
+.card-price-wrap{display:flex;align-items:baseline;gap:8px}
+.card-price{font-size:17px;font-weight:bold}
+.card-change{font-size:13px;font-weight:bold}
+.up{color:#c62828}.down{color:#1565C0}.flat{color:#546E7A}
+
+/* ── マッチ手法バッジ ── */
+.match-badges{
+  display:flex;flex-wrap:wrap;gap:6px;
+  padding:10px 16px 6px;
+}
+.mbadge{
+  background:#E3F2FD;color:#0D47A1;
+  border-radius:99px;padding:3px 10px;
+  font-size:12px;font-weight:bold;
+}
+.supporting-badges{
+  display:flex;flex-wrap:wrap;gap:5px;
+  padding:2px 16px 10px;align-items:center;
+}
+.supporting-label{
+  font-size:11px;color:#78909C;font-weight:bold;white-space:nowrap;margin-right:2px;
+}
+.sbadge{
+  background:#F5F5F5;color:#546E7A;
+  border-radius:99px;padding:2px 9px;
+  font-size:11px;border:1px solid #ECEFF1;
+}
+
+/* ── パターン + チャートセクション ── */
+.card-body{padding:12px 16px 16px}
+.pattern-block{
+  background:#F5F9FF;border-radius:8px;
+  padding:12px;margin-bottom:12px;
+  display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;
+}
+.pattern-svg{flex-shrink:0}
+.pattern-text h4{font-size:13px;font-weight:bold;color:#0D47A1;margin-bottom:4px}
+.pattern-text p{font-size:12px;color:#546E7A;line-height:1.5}
+
+/* ── チャート ── */
+.chart-wrap{
+  border-radius:8px;overflow:hidden;
+  border:1px solid #E3F2FD;
+}
+.chart-title{
+  font-size:11px;color:#546E7A;
+  padding:6px 10px;background:#F8FBFF;
+  border-bottom:1px solid #E3F2FD;
+}
+.chart-container{height:260px;width:100%}
+.vol-container{height:80px;width:100%}
+
+/* ── 未マッチ銘柄 ── */
+.no-match-section{
+  background:#fff;border-radius:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  padding:12px 16px;margin-top:8px;
+}
+.no-match-title{
+  font-size:12px;color:#90A4AE;font-weight:bold;
+  margin-bottom:8px;
+}
+.no-match-list{
+  display:flex;flex-wrap:wrap;gap:6px;
+}
+.no-match-chip{
+  background:#ECEFF1;color:#78909C;
+  border-radius:6px;padding:4px 10px;
+  font-size:12px;
+}
+
+/* ── ドロワー（手法選択・銘柄管理） ── */
+.overlay{
+  display:none;
+  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;
+}
+.overlay.open{display:block}
+.drawer{
+  position:fixed;
+  background:#fff;z-index:101;
+  overflow-y:auto;
+  transition:transform .25s ease;
+}
+/* PC: 左からスライド */
+@media(min-width:600px){
+  .drawer{
+    left:0;top:0;bottom:0;
+    width:300px;
+    transform:translateX(-100%);
+  }
+  .drawer.open{transform:translateX(0)}
+}
+/* スマホ: 下からボトムシート */
+@media(max-width:599px){
+  .drawer{
+    left:0;right:0;bottom:0;
+    max-height:80vh;
+    border-radius:16px 16px 0 0;
+    transform:translateY(100%);
+  }
+  .drawer.open{transform:translateY(0)}
+  /* スワイプインジケーター */
+  .drawer::before{
+    content:'';display:block;
+    width:40px;height:4px;border-radius:2px;
+    background:#CFD8DC;margin:10px auto 0;
+  }
+}
+.drawer-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;
+  border-bottom:1px solid #E3F2FD;
+  position:sticky;top:0;background:#fff;z-index:1;
+}
+.drawer-hdr h2{font-size:15px;font-weight:bold;color:#0D47A1}
+.close-btn{
+  background:none;border:none;cursor:pointer;
+  font-size:20px;color:#90A4AE;padding:4px;
+  line-height:1;
+}
+.close-btn:hover{color:#263238}
+
+/* ── 手法チェックリスト ── */
+.method-category{margin:0 16px 4px}
+.method-category-title{
+  font-size:11px;font-weight:bold;color:#90A4AE;
+  letter-spacing:.05em;text-transform:uppercase;
+  padding:10px 0 4px;border-bottom:1px solid #ECEFF1;
+}
+.method-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 4px;border-bottom:1px solid #F5F5F5;
+  cursor:pointer;
+}
+.method-item:hover{background:#F5F9FF;margin:0 -4px;padding:9px 8px}
+.method-item input[type=checkbox]{
+  width:18px;height:18px;cursor:pointer;accent-color:#1565C0;flex-shrink:0;
+}
+.method-item label{font-size:13px;cursor:pointer;flex:1}
+.drawer-footer{
+  position:sticky;bottom:0;background:#fff;
+  padding:12px 16px;border-top:1px solid #E3F2FD;
+}
+
+/* ── 銘柄管理ドロワー ── */
+.stock-input-row{
+  display:flex;gap:8px;padding:12px 16px;
+  border-bottom:1px solid #ECEFF1;
+}
+.stock-input-row input{
+  flex:1;border:1px solid #B0BEC5;border-radius:6px;
+  padding:0 10px;height:38px;font-size:14px;font-family:inherit;
+}
+.stock-input-row input:focus{outline:none;border-color:#1565C0}
+.stock-list-wrap{padding:8px 16px}
+.stock-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 0;border-bottom:1px solid #ECEFF1;
+}
+.stock-row-info{display:flex;flex-direction:column}
+.stock-row-code{font-size:14px;font-weight:bold;color:#0D47A1}
+.stock-row-name{font-size:11px;color:#90A4AE}
+.stock-note{
+  font-size:11px;color:#90A4AE;
+  padding:10px 16px;line-height:1.5;
+  background:#F8FBFF;margin:8px 16px;border-radius:6px;
+}
+
+/* ── スピナー・状態 ── */
+.loading-wrap{text-align:center;padding:40px 20px;color:#90A4AE}
+.spinner{
+  display:inline-block;width:28px;height:28px;
+  border:3px solid #E3F2FD;border-top-color:#1565C0;
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:48px 20px;color:#90A4AE}
+.empty-state .icon{font-size:40px;margin-bottom:10px}
+
+/* ── ユーティリティ ── */
+.mt8{margin-top:8px}
+.gap8{gap:8px}
+
+/* ── 実行ステータスバー ── */
+.run-bar{
+  display:none;
+  background:#1b5e20;color:#fff;
+  padding:8px 14px;font-size:13px;
+  align-items:center;gap:10px;
+  position:sticky;top:0;z-index:50;
+}
+.run-bar.visible{display:flex}
+.run-bar .mini-spinner{
+  display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
+  border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;
+}
+
+/* ── PAT設定モーダル ── */
+.modal-bg{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.5);z-index:200;
+  align-items:center;justify-content:center;
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:#fff;border-radius:12px;
+  padding:24px;width:min(90vw,380px);
+  box-shadow:0 8px 32px rgba(0,0,0,.2);
+}
+.modal h3{font-size:15px;font-weight:bold;color:#0D47A1;margin-bottom:10px}
+.modal p{font-size:12px;color:#546E7A;line-height:1.6;margin-bottom:14px}
+.modal input{
+  width:100%;border:1px solid #B0BEC5;border-radius:6px;
+  padding:0 10px;height:38px;font-size:13px;
+  font-family:inherit;margin-bottom:12px;
+}
+.modal input:focus{outline:none;border-color:#1565C0}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div>
+      <div class="hdr-title">📊 StockScan JP</div>
+      <div class="hdr-sub" id="hdrSub">読み込み中...</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn btn-outline" id="runBtn" onclick="handleRunClick()">
+      ▶ 今すぐ分析
+    </button>
+    <button class="btn btn-outline" onclick="openDrawer('method')">
+      ☰ 手法設定 <span id="methodCount" style="font-size:11px;opacity:.8"></span>
+    </button>
+    <button class="btn btn-outline" onclick="openDrawer('stock')">
+      📋 銘柄管理
+    </button>
+  </div>
+</div>
+
+<!-- 実行ステータスバー -->
+<div class="run-bar" id="runBar">
+  <span class="mini-spinner"></span>
+  <span id="runBarMsg">分析を実行中です（約5〜10分かかります）</span>
+</div>
+
+<!-- PAT設定モーダル -->
+<div class="modal-bg" id="patModal">
+  <div class="modal">
+    <h3>GitHub Personal Access Token</h3>
+    <p>
+      分析を手動実行するには、<strong>workflow</strong> 権限を持つ GitHub PAT が必要です。<br>
+      GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)<br>
+      → <strong>workflow</strong> にチェックして生成してください。<br><br>
+      トークンはこのブラウザにのみ保存され、外部に送信されません。
+    </p>
+    <input type="password" id="patInput" placeholder="ghp_xxxxxxxxxxxx" />
+    <div class="modal-btns">
+      <button class="btn" style="background:#ECEFF1;color:#546E7A" onclick="closePatModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="savePatAndRun()">保存して実行</button>
+    </div>
+  </div>
+</div>
+
+<!-- メインコンテンツ -->
+<div class="main" id="mainContent">
+  <div class="loading-wrap">
+    <div class="spinner"></div>
+    <div style="margin-top:12px;font-size:13px">データ読み込み中...</div>
+  </div>
+</div>
+
+<!-- ─── 手法設定ドロワー ─── -->
+<div class="overlay" id="methodOverlay" onclick="closeDrawer('method')"></div>
+<div class="drawer" id="methodDrawer">
+  <div class="drawer-hdr">
+    <h2>分析手法を選択</h2>
+    <button class="close-btn" onclick="closeDrawer('method')">✕</button>
+  </div>
+  <div id="methodList"></div>
+  <div class="drawer-footer">
+    <button class="btn btn-primary" style="width:100%" onclick="closeDrawer('method')">
+      完了
+    </button>
+  </div>
+</div>
+
+<!-- ─── 銘柄管理ドロワー ─── -->
+<div class="overlay" id="stockOverlay" onclick="closeDrawer('stock')"></div>
+<div class="drawer" id="stockDrawer">
+  <div class="drawer-hdr">
+    <h2>銘柄管理</h2>
+    <button class="close-btn" onclick="closeDrawer('stock')">✕</button>
+  </div>
+  <div class="stock-input-row">
+    <input type="text" id="stockCodeInput" placeholder="銘柄コード（例: 7203）" maxlength="6"
+           oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+           onkeydown="if(event.key==='Enter')addStock()">
+    <button class="btn btn-primary" onclick="addStock()">追加</button>
+  </div>
+  <div class="stock-note" id="stockNote">
+    銘柄を追加・削除するとGitHubへ自動反映し、分析を即時実行します（PATが必要です）。
+  </div>
+  <div style="padding:0 16px 8px;display:flex;justify-content:flex-end">
+    <button class="btn" style="background:none;color:#90A4AE;font-size:11px;padding:0;height:auto"
+            onclick="clearPat()">🔑 保存済みPATを削除</button>
+  </div>
+  <div class="stock-list-wrap" id="stockListWrap"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// 定数 & パターン定義
+// ═══════════════════════════════════════════════════════════════
+
+const CATEGORIES = [
+  {
+    id: 'candle',
+    label: 'ローソク足・酒田五法（A・B群）',
+    methods: [
+      { key: 'bullish_engulfing',    label: '陽の包み足' },
+      { key: 'hammer',               label: '下ひげ陽線（ハンマー）' },
+      { key: 'morning_star',         label: '朝の明星' },
+      { key: 'three_white_soldiers', label: '陽の三兵' },
+      { key: 'gap_up',               label: '窓開け陽線' },
+      { key: 'large_bullish_5pct',   label: '大陽線5%超（A-05）' },
+      { key: 'uwabane_large',        label: '上放れ陽線（A-07）' },
+      { key: 'sankasen_akebono',     label: '三川明けの明星（B-02）' },
+      { key: 'island_reversal',      label: '離れ小島（B-06）' },
+      { key: 'triple_bottom',        label: '三点底（B-08）' },
+      { key: 'engulfing_vol',        label: '包み足＋出来高（B-10）' },
+      { key: 'gap_vol',              label: '窓開け＋出来高（B-11）' },
+      { key: 'narabiaka',            label: '上放れ並び赤' },
+    ],
+  },
+  {
+    id: 'ma',
+    label: '移動平均線・トレンド',
+    methods: [
+      { key: 'perfect_order',       label: 'パーフェクトオーダー' },
+      { key: 'gc_25_75',            label: 'GC 25/75日線' },
+      { key: 'ma25_debut',          label: '25日線デビュー買い' },
+      { key: 'ma75_recovery',       label: '75日線回復' },
+      { key: 'ma_squeeze_breakout', label: 'MA収束後ブレイク' },
+      { key: 'price_above_all_ma',  label: '株価が全MA上' },
+      { key: 'ma25_touch_rebound',  label: '25日線タッチ反発（C-08）' },
+      { key: 'weinstein_stage2',    label: 'ワインスタインS2（C-10）' },
+      { key: 'ppp',                 label: 'パンパカパン（PPP）' },
+    ],
+  },
+  {
+    id: 'volume',
+    label: '出来高・OBV（D群）',
+    methods: [
+      { key: 'vol_surge_150',    label: '出来高急増（前日比150%超）' },
+      { key: 'new_high_vol',     label: '新高値＋出来高急増' },
+      { key: 'vol_dry_surge',    label: '出来高枯れ→急増' },
+      { key: 'vol_surge_200',    label: '出来高200%急増（D-02）' },
+      { key: 'obv_new_high',     label: 'OBV新高値（D-06）' },
+      { key: 'pocket_pivot',     label: 'ポケットピボット（D-07）' },
+      { key: 'vol_acceleration', label: '出来高加速（D-09）' },
+    ],
+  },
+  {
+    id: 'chart',
+    label: 'チャートパターン（E・F・G群）',
+    methods: [
+      { key: 'vcp',               label: 'VCP（ボラティリティ収縮）' },
+      { key: 'cup_with_handle',   label: 'カップウィズハンドル' },
+      { key: 'tight_area',        label: 'タイト保ち合い' },
+      { key: 'double_bottom',     label: 'ダブルボトム（W底）' },
+      { key: 'flag',              label: 'フラッグ・ペナント' },
+      { key: 'inv_head_shoulders',label: '逆ヘッド&ショルダー' },
+      { key: 'high_level_tight',  label: '高値圏コンソリデーション' },
+      { key: 'super_tight',       label: 'スーパータイト（E-03）' },
+      { key: 'high_tight_flag',   label: 'ハイタイトフラッグ（E-06）' },
+      { key: 'v_recovery',        label: 'V字回復（F-03）' },
+      { key: 'inv_triple_bottom', label: '逆三山（F-05+F-08）' },
+      { key: 'saucer_bottom',     label: '円形底（F-06）' },
+      { key: 'ascending_triangle',label: '上昇三角形（G-03）' },
+      { key: 'alltime_high',      label: '上場来高値更新（G-05）' },
+      { key: 'base_breakout',     label: 'ベース内ブレイク（G-07）' },
+    ],
+  },
+  {
+    id: 'indicator',
+    label: 'テクニカル指標・複合（I・K群）',
+    methods: [
+      { key: '52week_high',      label: '52週新高値' },
+      { key: 'williams_r',       label: 'ウィリアムズ%R（I-10）' },
+      { key: 'canslim',          label: 'CAN-SLIM複合（K-04）' },
+      { key: 'neckline_vol',     label: 'ネックライン突破＋出来高（K-07）' },
+      { key: 'weekly_po_first',  label: '週足PO初達成（K-09）' },
+    ],
+  },
+];
+
+// ─── パターン解説（SVG + テキスト） ───────────────────────────
+const PATTERN_INFO = {
+  bullish_engulfing: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="28" y1="4" x2="28" y2="48" stroke="#c62828" stroke-width="1.5"/>
+      <rect x="22" y="14" width="12" height="26" fill="#c62828"/>
+      <line x1="44" y1="2" x2="44" y2="56" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="36" y="10" width="16" height="38" fill="#1b5e20"/>
+    </svg>`,
+    desc: '前日の陰線を完全に包む大陽線。買い方への転換を示す強い逆転シグナル。出来高増加で信頼性↑。',
+  },
+  hammer: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="36" y1="36" x2="36" y2="58" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="29" y="24" width="14" height="12" fill="#1b5e20"/>
+      <line x1="36" y1="4" x2="36" y2="24" stroke="#1b5e20" stroke-width="1"/>
+    </svg>`,
+    desc: '下ひげが実体の2倍以上の陽線。売り圧力を買い方が吸収し反発。下落後の出現で効果的。',
+  },
+  morning_star: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="18" y1="4" x2="18" y2="52" stroke="#c62828" stroke-width="1.5"/>
+      <rect x="12" y="12" width="12" height="32" fill="#c62828"/>
+      <line x1="36" y1="30" x2="36" y2="44" stroke="#888" stroke-width="1.5"/>
+      <rect x="32" y="34" width="8" height="6" fill="#888"/>
+      <line x1="54" y1="8" x2="54" y2="52" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="47" y="14" width="14" height="28" fill="#1b5e20"/>
+    </svg>`,
+    desc: '陰線→小実体→大陽線の3本組み合わせ。底値転換の最も信頼性が高いパターンの一つ。',
+  },
+  three_white_soldiers: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="18" y1="24" x2="18" y2="52" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="12" y="30" width="12" height="20" fill="#1b5e20"/>
+      <line x1="36" y1="16" x2="36" y2="44" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="30" y="22" width="12" height="18" fill="#1b5e20"/>
+      <line x1="54" y1="8" x2="54" y2="36" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="48" y="14" width="12" height="18" fill="#1b5e20"/>
+    </svg>`,
+    desc: '3日連続で各日が前日の実体内から始まり高値を更新する陽線。強い買い継続シグナル。',
+  },
+  gap_up: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="28" y1="28" x2="28" y2="56" stroke="#c62828" stroke-width="1.5"/>
+      <rect x="22" y="34" width="12" height="18" fill="#c62828"/>
+      <text x="36" y="26" font-size="10" fill="#888" text-anchor="middle">↑ 窓</text>
+      <line x1="44" y1="6" x2="44" y2="22" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="38" y="10" width="12" height="10" fill="#1b5e20"/>
+    </svg>`,
+    desc: '前日高値を超えて始値が開く「真空ギャップ」。機関投資家の強い買い需要を示す。',
+  },
+  large_bullish: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="36" y1="4" x2="36" y2="56" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="28" y="10" width="16" height="42" fill="#1b5e20"/>
+    </svg>`,
+    desc: '実体が前日終値比3%以上の大陽線。強い買い圧力の表れ。出来高急増との組み合わせで最強。',
+  },
+  dragonfly_doji: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="36" y1="20" x2="36" y2="56" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="30" y="18" width="12" height="4" fill="#1b5e20"/>
+      <line x1="20" y1="20" x2="52" y2="20" stroke="#1b5e20" stroke-width="1.5"/>
+    </svg>`,
+    desc: 'ほぼ実体ゼロで長い下ひげ。売り圧力を全て吸収した状態。下落後の出現で反発を示唆。',
+  },
+  piercing: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="28" y1="4" x2="28" y2="52" stroke="#c62828" stroke-width="1.5"/>
+      <rect x="22" y="10" width="12" height="38" fill="#c62828"/>
+      <line x1="24" y1="29" x2="50" y2="29" stroke="#888" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="44" y1="14" x2="44" y2="56" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="38" y="20" width="12" height="32" fill="#1b5e20"/>
+    </svg>`,
+    desc: '大陰線の翌日、前日中値を超える陽線。転換シグナルだが確認が必要。',
+  },
+  perfect_order: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 52 Q36 40 68 14" stroke="#e53935" stroke-width="1.5" fill="none"/>
+      <path d="M4 56 Q36 48 68 24" stroke="#fb8c00" stroke-width="1.5" fill="none"/>
+      <path d="M4 58 Q36 54 68 36" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <circle cx="64" cy="10" r="4" fill="#1b5e20"/>
+      <text x="4" y="11" font-size="8" fill="#e53935">5日</text>
+      <text x="4" y="22" font-size="8" fill="#fb8c00">25日</text>
+      <text x="4" y="34" font-size="8" fill="#1565c0">75日</text>
+    </svg>`,
+    desc: '株価>5日>25日>75日MA。すべての移動平均が上向きで整列。上昇トレンドの最も安定した状態。',
+  },
+  gc_5_25: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 44 Q30 36 68 18" stroke="#fb8c00" stroke-width="2" fill="none"/>
+      <path d="M4 28 Q30 36 68 48" stroke="#e53935" stroke-width="2" fill="none"/>
+      <circle cx="34" cy="36" r="5" fill="none" stroke="#1b5e20" stroke-width="2"/>
+      <text x="4" y="14" font-size="8" fill="#e53935">5日</text>
+      <text x="4" y="54" font-size="8" fill="#fb8c00">25日</text>
+    </svg>`,
+    desc: '5日MAが25日MAを下から上に突破。短期転換の代表的シグナル。出来高増加で信頼性↑。',
+  },
+  gc_25_75: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 48 Q30 40 68 22" stroke="#1565c0" stroke-width="2" fill="none"/>
+      <path d="M4 26 Q30 40 68 52" stroke="#fb8c00" stroke-width="2" fill="none"/>
+      <circle cx="34" cy="40" r="5" fill="none" stroke="#1b5e20" stroke-width="2"/>
+      <text x="4" y="14" font-size="8" fill="#fb8c00">25日</text>
+      <text x="4" y="58" font-size="8" fill="#1565c0">75日</text>
+    </svg>`,
+    desc: '25日MAが75日MAを突破。中長期トレンドの転換を示す信頼性の高いシグナル。',
+  },
+  ma25_debut: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 40 Q24 42 36 40 Q48 36 68 20" stroke="#fb8c00" stroke-width="2" fill="none"/>
+      <circle cx="34" cy="40" r="4" fill="#1b5e20"/>
+      <text x="4" y="14" font-size="8" fill="#fb8c00">25日MA</text>
+      <text x="38" y="38" font-size="8" fill="#1b5e20">↑転換</text>
+    </svg>`,
+    desc: '下向きだった25日MAが上向きに転換。中期上昇トレンドの開始サインとして重視される。',
+  },
+  ma75_recovery: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 34 Q36 34 68 34" stroke="#1565c0" stroke-width="2" fill="none"/>
+      <path d="M4 50 Q24 44 38 32 Q52 22 68 18" stroke="#263238" stroke-width="1.5" fill="none"/>
+      <circle cx="36" cy="33" r="4" fill="#1b5e20"/>
+      <text x="4" y="28" font-size="8" fill="#1565c0">75日MA</text>
+    </svg>`,
+    desc: '株価が75日MAを下から上に突破。長期トレンドの転換点として機関投資家も注目。',
+  },
+  ma_squeeze_breakout: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 26 Q26 32 44 33 Q54 26 68 10" stroke="#e53935" stroke-width="1.5" fill="none"/>
+      <path d="M4 32 Q26 34 44 34 Q54 30 68 20" stroke="#fb8c00" stroke-width="1.5" fill="none"/>
+      <path d="M4 38 Q26 36 44 35 Q54 34 68 30" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <line x1="44" y1="8" x2="44" y2="56" stroke="#1b5e20" stroke-width="1" stroke-dasharray="3,2"/>
+    </svg>`,
+    desc: '3本の移動平均線が収束した後、価格が一方向にブレイク。大きなトレンド発生の前兆。',
+  },
+  price_above_all_ma: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <circle cx="36" cy="10" r="5" fill="#1b5e20"/>
+      <line x1="4" y1="26" x2="68" y2="26" stroke="#e53935" stroke-width="1.5"/>
+      <line x1="4" y1="36" x2="68" y2="36" stroke="#fb8c00" stroke-width="1.5"/>
+      <line x1="4" y1="46" x2="68" y2="46" stroke="#1565c0" stroke-width="1.5"/>
+      <text x="50" y="24" font-size="8" fill="#e53935">5日</text>
+      <text x="50" y="34" font-size="8" fill="#fb8c00">25日</text>
+      <text x="50" y="44" font-size="8" fill="#1565c0">75日</text>
+    </svg>`,
+    desc: '株価が5・25・75日MA全ての上に位置。上昇トレンドの基本条件として広く使われる。',
+  },
+  vol_surge_150: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <rect x="10" y="40" width="10" height="16" fill="#90A4AE"/>
+      <rect x="24" y="38" width="10" height="18" fill="#90A4AE"/>
+      <rect x="38" y="36" width="10" height="20" fill="#90A4AE"/>
+      <rect x="52" y="16" width="10" height="40" fill="#c62828"/>
+      <text x="52" y="12" font-size="8" fill="#c62828" text-anchor="middle">急増</text>
+    </svg>`,
+    desc: '当日の出来高が前日の1.5倍以上かつ株価上昇。機関投資家の買い参入シグナル。',
+  },
+  new_high_vol: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 46 Q20 40 36 30 Q50 20 68 10" stroke="#1b5e20" stroke-width="1.5" fill="none"/>
+      <circle cx="64" cy="10" r="5" fill="#1b5e20"/>
+      <rect x="10" y="46" width="8" height="10" fill="#90A4AE"/>
+      <rect x="26" y="42" width="8" height="14" fill="#90A4AE"/>
+      <rect x="42" y="38" width="8" height="18" fill="#90A4AE"/>
+      <rect x="58" y="28" width="8" height="28" fill="#c62828"/>
+    </svg>`,
+    desc: '52週高値更新と出来高急増が同時発生。O\'Neil手法の核心。機関投資家が最も反応する水準。',
+  },
+  vol_dry_surge: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <rect x="6"  y="30" width="8" height="26" fill="#90A4AE"/>
+      <rect x="18" y="36" width="8" height="20" fill="#90A4AE"/>
+      <rect x="30" y="42" width="8" height="14" fill="#90A4AE"/>
+      <rect x="42" y="46" width="8" height="10" fill="#90A4AE"/>
+      <rect x="56" y="16" width="8" height="40" fill="#c62828"/>
+      <text x="60" y="12" font-size="8" fill="#c62828" text-anchor="middle">×2</text>
+    </svg>`,
+    desc: '4日以上の出来高縮小（VCPの特徴）後に2倍超の出来高急増。保ち合い後のブレイクを示す。',
+  },
+  vol_above_ma25: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 46 Q36 46 68 46" stroke="#90A4AE" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <rect x="10" y="42" width="8" height="14" fill="#90A4AE"/>
+      <rect x="22" y="38" width="8" height="18" fill="#90A4AE"/>
+      <rect x="34" y="44" width="8" height="12" fill="#90A4AE"/>
+      <rect x="46" y="28" width="8" height="28" fill="#1b5e20"/>
+      <text x="4" y="44" font-size="8" fill="#90A4AE">25日平均</text>
+    </svg>`,
+    desc: '当日出来高が25日平均出来高を上回りかつ株価上昇。参加者増加による上昇の信頼性向上。',
+  },
+  vcp: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 8 L14 30 L24 16 L34 28 L42 20 L50 26 L56 22 L62 24" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <circle cx="62" cy="22" r="4" fill="none" stroke="#1b5e20" stroke-width="2"/>
+      <text x="4" y="58" font-size="8" fill="#90A4AE">値幅縮小 → ブレイク</text>
+    </svg>`,
+    desc: 'Minervini考案。値幅が段階的に縮小（18%→12%→6%）しブレイク。条件充足時の成功率90%超。',
+  },
+  cup_with_handle: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 10 Q10 40 36 44 Q52 44 58 30 L62 28 L60 32 L64 26" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <circle cx="64" cy="24" r="4" fill="none" stroke="#1b5e20" stroke-width="2"/>
+      <text x="18" y="56" font-size="8" fill="#90A4AE">カップ</text>
+      <text x="52" y="56" font-size="8" fill="#90A4AE">柄</text>
+    </svg>`,
+    desc: 'O\'Neil考案。U字型底（カップ）＋小さな下押し（ハンドル）後のブレイク。平均上昇率54%。',
+  },
+  tight_area: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 40 Q20 28 36 20 Q48 14 56 14" stroke="#263238" stroke-width="1.5" fill="none"/>
+      <path d="M38 12 L68 12" stroke="#90A4AE" stroke-width="1" stroke-dasharray="2,2"/>
+      <path d="M38 18 L68 18" stroke="#90A4AE" stroke-width="1" stroke-dasharray="2,2"/>
+      <rect x="40" y="13" width="8" height="4" fill="#546E7A" opacity="0.5"/>
+      <rect x="50" y="12" width="8" height="5" fill="#546E7A" opacity="0.5"/>
+      <circle cx="64" cy="10" r="3" fill="#1b5e20"/>
+    </svg>`,
+    desc: '上昇トレンド中の5〜8日間で値幅が5%以内の超狭レンジ。機関投資家の吸い上げ後のブレイクを示唆。',
+  },
+  double_bottom: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 10 L20 44 L36 20 L52 44 L68 10" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <line x1="4" y1="20" x2="68" y2="20" stroke="#90A4AE" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="4" y="16" font-size="7" fill="#90A4AE">ネックライン</text>
+      <circle cx="68" cy="10" r="3" fill="#1b5e20"/>
+    </svg>`,
+    desc: '2度の安値確認後にネックライン突破。W字型の転換パターン。2つ目の底が浅ければより強い。',
+  },
+  flag: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="20" y1="56" x2="36" y2="20" stroke="#263238" stroke-width="2"/>
+      <path d="M36 20 L68 26 L68 36 L36 30 Z" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <line x1="68" y1="26" x2="72" y2="16" stroke="#1b5e20" stroke-width="2"/>
+    </svg>`,
+    desc: '急騰（旗竿）後の短期保ち合い（旗）からの同方向ブレイク。上昇継続パターンの定番。',
+  },
+  inv_head_shoulders: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 16 L18 40 L26 26 L36 50 L46 26 L54 40 L68 16" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <line x1="4" y1="26" x2="68" y2="26" stroke="#90A4AE" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="4" y="22" font-size="7" fill="#90A4AE">ネックライン</text>
+    </svg>`,
+    desc: '三点底（左肩・頭・右肩）からネックライン突破。中〜大型の転換パターンで信頼性高い。',
+  },
+  rsi_50_cross: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="4" y1="34" x2="68" y2="34" stroke="#90A4AE" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="4" y="30" font-size="8" fill="#90A4AE">RSI 50</text>
+      <path d="M4 52 Q20 50 30 44 Q36 38 44 28 Q54 16 68 12" stroke="#1565c0" stroke-width="2" fill="none"/>
+      <circle cx="38" cy="34" r="4" fill="none" stroke="#1b5e20" stroke-width="2"/>
+    </svg>`,
+    desc: 'RSI(14)が50を下から上に突破。売り優勢から買い優勢への転換を示す。MA上昇との組み合わせ有効。',
+  },
+  macd_gc: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 48 Q20 40 36 30 Q50 22 68 14" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <path d="M4 34 Q20 36 36 34 Q50 30 68 24" stroke="#e53935" stroke-width="1.5" fill="none"/>
+      <circle cx="32" cy="32" r="4" fill="none" stroke="#1b5e20" stroke-width="2"/>
+      <text x="4" y="10" font-size="8" fill="#1565c0">MACD</text>
+      <text x="4" y="20" font-size="8" fill="#e53935">Signal</text>
+    </svg>`,
+    desc: 'MACDラインがシグナルラインを下から上に突破。トレンド転換の定番指標。ヒストグラム確認で精度↑。',
+  },
+  bb_squeeze: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 16 Q24 28 36 30 Q48 32 68 10" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <path d="M4 44 Q24 32 36 30 Q48 28 68 50" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <path d="M4 30 Q24 30 36 30 Q48 30 68 30" stroke="#90A4AE" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="4" y="12" font-size="7" fill="#90A4AE">↑拡張</text>
+    </svg>`,
+    desc: 'ボリンジャーバンドが収縮後に急拡大。強いトレンド発生の前兆。出来高急増と組み合わせが最強。',
+  },
+  '52week_high': {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 48 Q20 40 36 28 Q50 18 60 12" stroke="#263238" stroke-width="1.5" fill="none"/>
+      <circle cx="62" cy="10" r="5" fill="#1b5e20"/>
+      <text x="4" y="8" font-size="8" fill="#1b5e20">★ 年間新高値</text>
+    </svg>`,
+    desc: '過去52週の最高値を更新。学術研究で月次+0.65%の超過リターンが確認されている強力なモメンタム指標。',
+  },
+  high_level_tight: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 44 Q20 30 40 14 Q50 12 60 12" stroke="#263238" stroke-width="1.5" fill="none"/>
+      <line x1="38" y1="10" x2="68" y2="10" stroke="#90A4AE" stroke-width="1" stroke-dasharray="2,2"/>
+      <line x1="38" y1="16" x2="68" y2="16" stroke="#90A4AE" stroke-width="1" stroke-dasharray="2,2"/>
+      <circle cx="65" cy="8" r="3" fill="#1b5e20"/>
+    </svg>`,
+    desc: '年初来高値の90%圏内での超タイト保ち合い後のブレイク。上昇途中での一段高前のセットアップ。',
+  },
+  // ── A群 ──
+  large_bullish_5pct: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="36" y1="2" x2="36" y2="58" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="27" y="8" width="18" height="46" fill="#1b5e20"/>
+      <text x="36" y="6" font-size="9" fill="#1b5e20" text-anchor="middle">5%+</text>
+    </svg>`,
+    desc: '実体が前日終値比5%超の大陽線。65日安値から30%超上昇時は除外（クライマックス買い回避）。',
+  },
+  uwabane_large: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="26" y1="32" x2="26" y2="52" stroke="#c62828" stroke-width="1.5"/>
+      <rect x="20" y="36" width="12" height="14" fill="#c62828"/>
+      <text x="40" y="28" font-size="9" fill="#888" text-anchor="middle">↑ 窓</text>
+      <line x1="50" y1="8" x2="50" y2="34" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="44" y="12" width="12" height="18" fill="#1b5e20"/>
+    </svg>`,
+    desc: '前日高値を超えて窓開け（1〜10%）＋実体3%以上＋出来高MA25の2倍以上。機関買いの強い窓。',
+  },
+  // ── B群 ──
+  sankasen_akebono: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="18" y1="4" x2="18" y2="52" stroke="#c62828" stroke-width="1.5"/>
+      <rect x="12" y="10" width="12" height="36" fill="#c62828"/>
+      <rect x="32" y="34" width="8" height="6" fill="#888"/>
+      <line x1="36" y1="30" x2="36" y2="44" stroke="#888" stroke-width="1.5"/>
+      <line x1="54" y1="6" x2="54" y2="50" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="48" y="12" width="12" height="30" fill="#1b5e20"/>
+    </svg>`,
+    desc: '陰線→窓開け下小実体→窓開け上大陽線の3本。三川明けの明星。前日中値超えで完成。',
+  },
+  island_reversal: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <rect x="8" y="12" width="10" height="20" fill="#c62828"/>
+      <text x="36" y="26" font-size="8" fill="#888" text-anchor="middle">孤立</text>
+      <rect x="28" y="22" width="18" height="14" fill="#90A4AE" opacity=".5"/>
+      <rect x="54" y="8" width="10" height="18" fill="#1b5e20"/>
+    </svg>`,
+    desc: '窓開け下落で孤立した「島」を形成後、窓開け上昇で脱出。出来高急増で完成。完全な需給逆転。',
+  },
+  triple_bottom: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <polyline points="4,10 18,48 32,10 46,48 60,10 68,28" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <line x1="4" y1="10" x2="68" y2="10" stroke="#c62828" stroke-width="1" stroke-dasharray="3,2"/>
+    </svg>`,
+    desc: '3つの安値が±3%以内で揃う三点底。ネックライン突破＋出来高MA25×1.5倍で完成。',
+  },
+  engulfing_vol: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="28" y1="8" x2="28" y2="52" stroke="#c62828" stroke-width="1.5"/>
+      <rect x="22" y="16" width="12" height="28" fill="#c62828"/>
+      <line x1="46" y1="4" x2="46" y2="56" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="38" y="10" width="16" height="40" fill="#1b5e20"/>
+      <text x="58" y="56" font-size="8" fill="#1565c0">RSI≤40</text>
+    </svg>`,
+    desc: '前日実体1.5倍超の包み足＋出来高前日比150%＋RSI≤40＋MA付近。4条件全必須の強い反転。',
+  },
+  gap_vol: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="26" y1="30" x2="26" y2="52" stroke="#c62828" stroke-width="1.5"/>
+      <rect x="20" y="36" width="12" height="14" fill="#c62828"/>
+      <line x1="46" y1="6" x2="46" y2="28" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="40" y="10" width="12" height="16" fill="#1b5e20"/>
+      <rect x="18" y="54" width="8" height="5" fill="#90CAF9"/>
+      <rect x="40" y="46" width="8" height="12" fill="#1565c0"/>
+    </svg>`,
+    desc: '窓開け1%以上＋出来高MA25の2倍超＋52週高値5%以内。O\'Neil窓開けブレイク。注：市場全体の調整局面では偽シグナルあり。',
+  },
+  narabiaka: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="24" y1="28" x2="24" y2="52" stroke="#c62828" stroke-width="1.5"/>
+      <rect x="18" y="34" width="12" height="16" fill="#c62828"/>
+      <text x="36" y="26" font-size="8" fill="#888" text-anchor="middle">↑ 窓</text>
+      <line x1="40" y1="6" x2="40" y2="30" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="34" y="10" width="12" height="18" fill="#1b5e20"/>
+      <line x1="58" y1="4" x2="58" y2="28" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="52" y="8" width="12" height="18" fill="#1b5e20"/>
+    </svg>`,
+    desc: '窓開け陽線の翌日、同じ始値水準（±3%）・同サイズ（50〜150%）の陽線。機関の継続買いを示す。',
+  },
+  // ── C群 ──
+  ma25_touch_rebound: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 20 Q36 28 68 14" stroke="#fb8c00" stroke-width="1.5" fill="none"/>
+      <circle cx="48" cy="30" r="3" fill="#1b5e20"/>
+      <line x1="48" y1="24" x2="48" y2="48" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="43" y="30" width="10" height="14" fill="#1b5e20"/>
+    </svg>`,
+    desc: 'MA25上向き＋MA75<MA25時に前日MA25±5%まで接近し当日陽線で反発。RSI35〜65。押し目買いの黄金パターン。',
+  },
+  weinstein_stage2: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 44 Q24 44 40 44 Q52 38 68 18" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <circle cx="40" cy="44" r="3" fill="#e53935"/>
+      <text x="4" y="14" font-size="8" fill="#1565c0">Stage2↗</text>
+    </svg>`,
+    desc: 'MA75が65日間フラット（±3%）後に上向き転換。株価MA75上＋出来高65日平均×1.5。ワインスタインの最強買い場。',
+  },
+  ppp: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 52 Q36 42 68 14" stroke="#e53935" stroke-width="1.5" fill="none"/>
+      <path d="M4 56 Q36 48 68 24" stroke="#fb8c00" stroke-width="1.5" fill="none"/>
+      <path d="M4 58 Q36 54 68 36" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <circle cx="30" cy="48" r="4" fill="#c62828"/>
+      <circle cx="68" cy="12" r="4" fill="#1b5e20"/>
+      <text x="2" y="11" font-size="7" fill="#263238">初達成!</text>
+    </svg>`,
+    desc: '前日は非PO→当日初めてPO成立（株価>5MA>25MA>75MA、全MA上向き）。相場師朗のパンパカパン初達成シグナル。',
+  },
+  // ── D群 ──
+  vol_surge_200: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <rect x="14" y="38" width="10" height="14" fill="#90CAF9"/>
+      <rect x="48" y="24" width="10" height="28" fill="#1565c0"/>
+      <line x1="44" y1="8" x2="44" y2="26" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="38" y="12" width="12" height="12" fill="#1b5e20"/>
+      <text x="54" y="22" font-size="8" fill="#1565c0">×2</text>
+    </svg>`,
+    desc: '出来高が前日比2倍以上＋実体3%超の大陽線＋52週高値付近。機関投資家の大規模買い参入の証拠。',
+  },
+  obv_new_high: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 50 Q20 46 36 38 Q52 30 68 18" stroke="#1565c0" stroke-width="2" fill="none"/>
+      <path d="M4 48 Q20 46 36 44 Q52 44 68 40" stroke="#90A4AE" stroke-width="1" stroke-dasharray="3,2" fill="none"/>
+      <text x="4" y="14" font-size="8" fill="#1565c0">OBV↗</text>
+      <text x="4" y="24" font-size="8" fill="#90A4AE">価格―</text>
+    </svg>`,
+    desc: 'OBVが20日高値を更新、価格はまだ更新していない。スマートマネーの先行買いを先読みする早期検知。',
+  },
+  pocket_pivot: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <rect x="14" y="38" width="8" height="14" fill="#c62828" opacity=".6"/>
+      <rect x="26" y="42" width="8" height="10" fill="#90A4AE"/>
+      <rect x="38" y="40" width="8" height="12" fill="#c62828" opacity=".6"/>
+      <line x1="54" y1="10" x2="54" y2="52" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="48" y="16" width="12" height="34" fill="#1b5e20"/>
+      <rect x="50" y="54" width="8" height="16" fill="#1565c0"/>
+    </svg>`,
+    desc: '陽線でMA25以上、当日出来高が直近10日の全陰線日出来高を上回る。O\'Neilのポケットピボット。',
+  },
+  vol_acceleration: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="22" y1="36" x2="22" y2="52" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="17" y="40" width="10" height="10" fill="#1b5e20"/>
+      <line x1="38" y1="26" x2="38" y2="52" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="33" y="30" width="10" height="20" fill="#1b5e20"/>
+      <line x1="54" y1="10" x2="54" y2="52" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="49" y="14" width="10" height="36" fill="#1b5e20"/>
+      <rect x="17" y="52" width="10" height="6" fill="#90CAF9"/>
+      <rect x="33" y="46" width="10" height="12" fill="#90CAF9"/>
+      <rect x="49" y="38" width="10" height="20" fill="#1565c0"/>
+    </svg>`,
+    desc: '3日連続陽線＋終値上昇＋出来高加速（各日増加）。強いモメンタムの継続確認シグナル。',
+  },
+  // ── E群 ──
+  super_tight: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="4" y1="30" x2="68" y2="30" stroke="#c62828" stroke-width="1" stroke-dasharray="3,2"/>
+      <rect x="20" y="28" width="8" height="4" fill="#1b5e20"/>
+      <rect x="32" y="29" width="8" height="3" fill="#c62828"/>
+      <rect x="44" y="28" width="8" height="3" fill="#1b5e20"/>
+      <text x="36" y="52" font-size="8" fill="#1565c0" text-anchor="middle">&lt;3%</text>
+    </svg>`,
+    desc: '5日値幅3%未満＋出来高MA25の33%以下＋52週高値5%以内＋MA25上。機関の静かな買い集め完了。',
+  },
+  high_tight_flag: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <polyline points="4,54 16,30 28,6" stroke="#1b5e20" stroke-width="2" fill="none"/>
+      <rect x="28" y="10" width="34" height="16" fill="none" stroke="#fb8c00" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="62" y1="6" x2="62" y2="30" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="57" y="10" width="10" height="16" fill="#1b5e20"/>
+    </svg>`,
+    desc: '56日以内に100%超の急騰後、20%以内で1〜6週調整＋出来高枯れ→急増ブレイク。O\'Neil最高評価パターン。',
+  },
+  // ── F群 ──
+  v_recovery: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <polyline points="4,10 36,50 68,12" stroke="#1565c0" stroke-width="2" fill="none"/>
+      <line x1="36" y1="20" x2="36" y2="50" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="30" y="26" width="12" height="22" fill="#1b5e20"/>
+    </svg>`,
+    desc: '前日5〜15%下落→当日50%以上回復の陽線、出来高は前日より少ない。MA付近での発生で信頼性UP。',
+  },
+  inv_triple_bottom: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <polyline points="4,14 18,50 32,10 46,44 60,8 68,20" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <line x1="4" y1="8" x2="68" y2="8" stroke="#c62828" stroke-width="1" stroke-dasharray="3,2"/>
+    </svg>`,
+    desc: '3安値が切り上がり（v1<v2<v3）＋各安値で出来高縮小＋ネックライン突破＋出来高急増。売り方消耗の確認。',
+  },
+  saucer_bottom: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 12 Q20 50 36 52 Q52 50 68 12" stroke="#1565c0" stroke-width="2" fill="none"/>
+      <line x1="4" y1="12" x2="68" y2="12" stroke="#c62828" stroke-width="1" stroke-dasharray="3,2"/>
+      <circle cx="68" cy="10" r="3" fill="#1b5e20"/>
+    </svg>`,
+    desc: '90日間のU字形底値（放物線フィット）。底が中央70%内＋後半出来高>前半＋現在90日高値90%以上。',
+  },
+  // ── G群 ──
+  ascending_triangle: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="4" y1="16" x2="68" y2="16" stroke="#c62828" stroke-width="1.5"/>
+      <polyline points="4,54 20,46 36,36 52,28 68,16" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <circle cx="68" cy="14" r="3" fill="#1b5e20"/>
+    </svg>`,
+    desc: '60日間の水平上値抵抗（標準偏差/平均2%以下）＋上昇する下値サポート。出来高MA25×1.5でブレイク。成功率83%。',
+  },
+  alltime_high: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 52 Q20 44 36 30 Q52 16 68 6" stroke="#1b5e20" stroke-width="2" fill="none"/>
+      <circle cx="68" cy="6" r="4" fill="#1b5e20"/>
+      <text x="36" y="58" font-size="8" fill="#c62828" text-anchor="middle">上場来高値!</text>
+    </svg>`,
+    desc: '株式分割調整済みの上場来高値を更新。過去の高値を全て超えた最強のブレイクアウト。yfinance period=maxで判定。',
+  },
+  base_breakout: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <rect x="4" y="24" width="52" height="20" fill="#E3F2FD" stroke="#90CAF9" stroke-width="1"/>
+      <text x="30" y="37" font-size="8" fill="#546E7A" text-anchor="middle">ベース</text>
+      <line x1="56" y1="12" x2="56" y2="46" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="51" y="16" width="10" height="28" fill="#1b5e20"/>
+    </svg>`,
+    desc: '20日値幅10%以内のベース内で直近5〜10日高値を出来高×1.3で突破。MA25上。O\'Neil中間ピボット。',
+  },
+  // ── I群 ──
+  williams_r: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="4" y1="50" x2="68" y2="50" stroke="#c62828" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="4" y1="26" x2="68" y2="26" stroke="#1b5e20" stroke-width="1" stroke-dasharray="3,2"/>
+      <path d="M4 30 Q20 54 36 52 Q52 30 68 22" stroke="#1565c0" stroke-width="2" fill="none"/>
+      <text x="4" y="14" font-size="7" fill="#90A4AE">-50</text>
+      <text x="4" y="58" font-size="7" fill="#90A4AE">-80</text>
+    </svg>`,
+    desc: '過去14日に%R≤-80（売られすぎ）→現在%R≥-50への回復＋MA25上向き。リバウンド初動の検知。',
+  },
+  // ── K群 ──
+  canslim: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 52 Q36 38 68 10" stroke="#e53935" stroke-width="1.5" fill="none"/>
+      <path d="M4 56 Q36 46 68 22" stroke="#fb8c00" stroke-width="1.5" fill="none"/>
+      <path d="M4 58 Q36 52 68 34" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <circle cx="68" cy="8" r="4" fill="#1b5e20"/>
+      <text x="4" y="10" font-size="8" fill="#263238">PO+高値+出来高</text>
+    </svg>`,
+    desc: 'パーフェクトオーダー＋52週新高値更新＋出来高MA25×1.5の三重同時成立。O\'Neil CAN-SLIM技術的条件。勝率72〜78%。',
+  },
+  neckline_vol: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <line x1="4" y1="20" x2="68" y2="20" stroke="#c62828" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <text x="4" y="16" font-size="7" fill="#c62828">ネックライン</text>
+      <line x1="54" y1="6" x2="54" y2="22" stroke="#1b5e20" stroke-width="1.5"/>
+      <rect x="48" y="8" width="12" height="12" fill="#1b5e20"/>
+      <rect x="48" y="44" width="12" height="14" fill="#1565c0"/>
+    </svg>`,
+    desc: '直近20日高値（ネックライン）を終値で突破＋出来高MA25×1.5。F・G群パターンの汎用出来高確認フィルター。',
+  },
+  weekly_po_first: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 52 Q36 44 68 14" stroke="#e53935" stroke-width="2" fill="none"/>
+      <path d="M4 56 Q36 50 68 24" stroke="#fb8c00" stroke-width="2" fill="none"/>
+      <path d="M4 58 Q36 54 68 36" stroke="#1565c0" stroke-width="2" fill="none"/>
+      <text x="36" y="10" font-size="8" fill="#263238" text-anchor="middle">週足PO初!</text>
+      <text x="36" y="56" font-size="7" fill="#90A4AE" text-anchor="middle">金曜のみ</text>
+    </svg>`,
+    desc: '週足5w>13w>26w MA全上向きを初達成（金曜のみ）。26週間PO未達成後の初転換。長期下落からの転換確認。',
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// アプリ状態
+// ═══════════════════════════════════════════════════════════════
+
+const ALL_KEYS = CATEGORIES.flatMap(c => c.methods.map(m => m.key));
+
+let state = {
+  results:           null,
+  stocks:            [],
+  enabledMethods:    new Set(ALL_KEYS),
+  charts:            {},
+  pendingStocksSync: false,
+};
+
+// ═══════════════════════════════════════════════════════════════
+// localStorage
+// ═══════════════════════════════════════════════════════════════
+
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem('ssjp_methods');
+    if (saved) {
+      state.enabledMethods = new Set(JSON.parse(saved));
+    }
+    const savedStocks = localStorage.getItem('ssjp_stocks');
+    if (savedStocks) {
+      state.stocks = JSON.parse(savedStocks);
+    }
+  } catch (e) {}
+}
+
+function saveSettings() {
+  localStorage.setItem('ssjp_methods', JSON.stringify([...state.enabledMethods]));
+  localStorage.setItem('ssjp_stocks', JSON.stringify(state.stocks));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// データ読み込み
+// ═══════════════════════════════════════════════════════════════
+
+async function loadData() {
+  try {
+    const [resRes, stockRes] = await Promise.all([
+      fetch(`data/results.json?t=${Date.now()}`),
+      fetch(`data/stocks.json?t=${Date.now()}`),
+    ]);
+    state.results = await resRes.json();
+    const remoteStocks = await stockRes.json();
+
+    // ローカル管理銘柄がなければリモートをベースに
+    if (state.stocks.length === 0) {
+      state.stocks = remoteStocks;
+      saveSettings();
+    }
+  } catch (e) {
+    state.results = { date: '--', total: 0, matched: 0, stocks: [] };
+  }
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// レンダリング
+// ═══════════════════════════════════════════════════════════════
+
+function render() {
+  // ヘッダー更新
+  const sub = document.getElementById('hdrSub');
+  if (state.results && state.results.date !== '--') {
+    sub.textContent = `最終更新: ${state.results.date}  登録: ${state.stocks.length}/100銘柄`;
+  } else {
+    sub.textContent = `登録: ${state.stocks.length}/100銘柄  （まだ分析未実行）`;
+  }
+
+  // 手法カウント更新
+  document.getElementById('methodCount').textContent = `${state.enabledMethods.size}選択中`;
+
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '';
+
+  const stocks = (state.results && state.results.stocks) || [];
+
+  // 有効な手法でフィルタリング（単独 + 補助）
+  const filtered = stocks.map(s => ({
+    ...s,
+    matches:    (s.matches    || []).filter(m => state.enabledMethods.has(m.key)),
+    supporting: (s.supporting || []).filter(m => state.enabledMethods.has(m.key)),
+  })).filter(s => s.matches.length > 0 || s.supporting.length > 0);
+
+  const unmatched = stocks.filter(s =>
+    !(s.matches    || []).some(m => state.enabledMethods.has(m.key)) &&
+    !(s.supporting || []).some(m => state.enabledMethods.has(m.key))
+  );
+
+  // マッチ数バッジ
+  const mhdr = document.createElement('div');
+  mhdr.className = 'match-header';
+
+  if (filtered.length > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'badge-count';
+    badge.textContent = `🔔 マッチ銘柄 ${filtered.length}件`;
+    mhdr.appendChild(badge);
+  } else {
+    const badge = document.createElement('span');
+    badge.className = 'badge-none';
+    badge.textContent = stocks.length === 0
+      ? '分析未実行 — GitHub Actionsを手動実行してください'
+      : '本日マッチなし';
+    mhdr.appendChild(badge);
+  }
+
+  if (state.results && state.results.date !== '--') {
+    const dateEl = document.createElement('span');
+    dateEl.className = 'badge-date';
+    dateEl.textContent = state.results.date + ' 終値時点';
+    mhdr.appendChild(dateEl);
+  }
+  main.appendChild(mhdr);
+
+  // マッチ銘柄カード
+  filtered.forEach((s, idx) => {
+    main.appendChild(buildCard(s, idx));
+  });
+
+  // 未マッチ銘柄
+  if (unmatched.length > 0) {
+    const sec = document.createElement('div');
+    sec.className = 'no-match-section';
+    const t = document.createElement('div');
+    t.className = 'no-match-title';
+    t.textContent = `本日マッチなし（${unmatched.length}銘柄）`;
+    sec.appendChild(t);
+    const list = document.createElement('div');
+    list.className = 'no-match-list';
+    unmatched.forEach(s => {
+      const chip = document.createElement('span');
+      chip.className = 'no-match-chip';
+      chip.textContent = `${s.code} ${s.name}`;
+      list.appendChild(chip);
+    });
+    sec.appendChild(list);
+    main.appendChild(sec);
+  }
+
+  if (stocks.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.innerHTML = `<div class="icon">📊</div>
+      <p>分析データがありません。</p>
+      <p style="font-size:12px;margin-top:8px;color:#90A4AE">
+        GitHubリポジトリの Actions タブから<br>
+        「株価テクニカル分析」を手動実行してください。
+      </p>`;
+    main.appendChild(empty);
+  }
+
+  // 手法ドロワーを更新
+  buildMethodList();
+  buildStockList();
+}
+
+// ─── 個別カード ────────────────────────────────────────────────
+
+function buildCard(s, idx) {
+  const card = document.createElement('div');
+  card.className = 'stock-card';
+
+  const sign = s.change >= 0 ? '+' : '';
+  const cls  = s.change > 0 ? 'up' : s.change < 0 ? 'down' : 'flat';
+  const arrow = s.change > 0 ? '▲' : s.change < 0 ? '▼' : '─';
+
+  // カードヘッダー
+  const hdr = document.createElement('div');
+  hdr.className = 'card-header';
+  hdr.innerHTML = `
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+      <span class="card-code">${s.code}</span>
+      <span class="card-name">${s.name || ''}</span>
+    </div>
+    <div class="card-price-wrap">
+      <span class="card-price">¥${s.close.toLocaleString()}</span>
+      <span class="card-change ${cls}">${arrow}${sign}${s.change.toFixed(1)}%</span>
+    </div>
+  `;
+  card.appendChild(hdr);
+
+  // 単独シグナルバッジ
+  if (s.matches && s.matches.length > 0) {
+    const badges = document.createElement('div');
+    badges.className = 'match-badges';
+    s.matches.forEach(m => {
+      const b = document.createElement('span');
+      b.className = 'mbadge';
+      b.textContent = m.label;
+      badges.appendChild(b);
+    });
+    card.appendChild(badges);
+  }
+
+  // 補助指標バッジ
+  if (s.supporting && s.supporting.length > 0) {
+    const suppDiv = document.createElement('div');
+    suppDiv.className = 'supporting-badges';
+    const lbl = document.createElement('span');
+    lbl.className = 'supporting-label';
+    lbl.textContent = '補助:';
+    suppDiv.appendChild(lbl);
+    s.supporting.forEach(m => {
+      const b = document.createElement('span');
+      b.className = 'sbadge';
+      b.textContent = m.label;
+      suppDiv.appendChild(b);
+    });
+    card.appendChild(suppDiv);
+  }
+
+  // カードボディ（パターン解説 + チャート）
+  const body = document.createElement('div');
+  body.className = 'card-body';
+
+  // 一致した各パターンの解説
+  s.matches.forEach(m => {
+    const info = PATTERN_INFO[m.key];
+    if (!info) return;
+    const block = document.createElement('div');
+    block.className = 'pattern-block';
+    block.innerHTML = `
+      <div class="pattern-svg">${info.svg}</div>
+      <div class="pattern-text">
+        <h4>${m.label}</h4>
+        <p>${info.desc}</p>
+      </div>
+    `;
+    body.appendChild(block);
+  });
+
+  // チャート
+  if (s.chart && s.chart.length > 0) {
+    const chartWrap = document.createElement('div');
+    chartWrap.className = 'chart-wrap mt8';
+    const chartId = `chart-${s.code}-${idx}`;
+    chartWrap.innerHTML = `
+      <div class="chart-title">日足チャート（直近90日）　─── 5日MA　─── 25日MA　─── 75日MA</div>
+      <div class="chart-container" id="${chartId}-price"></div>
+      <div class="vol-container" id="${chartId}-vol"></div>
+    `;
+    body.appendChild(chartWrap);
+
+    // チャート描画は次のフレームで（DOM挿入後）
+    setTimeout(() => renderChart(chartId, s.chart), 0);
+  }
+
+  card.appendChild(body);
+  return card;
+}
+
+// ─── Lightweight Charts 描画 ────────────────────────────────
+
+function renderChart(chartId, data) {
+  const priceEl = document.getElementById(`${chartId}-price`);
+  const volEl   = document.getElementById(`${chartId}-vol`);
+  if (!priceEl || !volEl) return;
+
+  const chartOpts = {
+    layout: { background: { color: '#fff' }, textColor: '#546E7A' },
+    grid: {
+      vertLines: { color: '#F5F5F5' },
+      horzLines: { color: '#F5F5F5' },
+    },
+    rightPriceScale: { borderColor: '#E3F2FD' },
+    timeScale: { borderColor: '#E3F2FD', timeVisible: true },
+    crosshair: { mode: 1 },
+    width:  priceEl.offsetWidth || 320,
+    height: 260,
+  };
+
+  // ── 価格チャート ──
+  const priceChart = LightweightCharts.createChart(priceEl, chartOpts);
+
+  const candleSeries = priceChart.addCandlestickSeries({
+    upColor:          '#1b5e20',
+    downColor:        '#c62828',
+    borderUpColor:    '#1b5e20',
+    borderDownColor:  '#c62828',
+    wickUpColor:      '#1b5e20',
+    wickDownColor:    '#c62828',
+  });
+  candleSeries.setData(data.map(d => ({
+    time:  d.time,
+    open:  d.open,
+    high:  d.high,
+    low:   d.low,
+    close: d.close,
+  })));
+
+  // MA5
+  const ma5Series = priceChart.addLineSeries({ color: '#e53935', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+  ma5Series.setData(data.filter(d => d.ma5 !== null).map(d => ({ time: d.time, value: d.ma5 })));
+
+  // MA25
+  const ma25Series = priceChart.addLineSeries({ color: '#fb8c00', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false });
+  ma25Series.setData(data.filter(d => d.ma25 !== null).map(d => ({ time: d.time, value: d.ma25 })));
+
+  // MA75
+  const ma75Series = priceChart.addLineSeries({ color: '#1565c0', lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
+  ma75Series.setData(data.filter(d => d.ma75 !== null).map(d => ({ time: d.time, value: d.ma75 })));
+
+  priceChart.timeScale().fitContent();
+
+  // ── 出来高チャート ──
+  const volChart = LightweightCharts.createChart(volEl, {
+    ...chartOpts,
+    height: 80,
+    rightPriceScale: { ...chartOpts.rightPriceScale, minimumWidth: 60 },
+    timeScale: { ...chartOpts.timeScale, visible: false },
+  });
+
+  const volSeries = volChart.addHistogramSeries({
+    color: '#90CAF9',
+    priceScaleId: 'volume',
+  });
+  volSeries.priceScale().applyOptions({ scaleMargins: { top: 0.1, bottom: 0 } });
+  volSeries.setData(data.map(d => ({
+    time:  d.time,
+    value: d.volume,
+    color: d.close >= d.open ? 'rgba(27,94,32,.6)' : 'rgba(198,40,40,.5)',
+  })));
+  volChart.timeScale().fitContent();
+
+  // チャートをリサイズに追従
+  const ro = new ResizeObserver(() => {
+    const w = priceEl.offsetWidth;
+    if (w > 0) {
+      priceChart.applyOptions({ width: w });
+      volChart.applyOptions({ width: w });
+    }
+  });
+  ro.observe(priceEl);
+
+  // チャートを同期
+  priceChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+    if (range) volChart.timeScale().setVisibleLogicalRange(range);
+  });
+  volChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+    if (range) priceChart.timeScale().setVisibleLogicalRange(range);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 手法ドロワー
+// ═══════════════════════════════════════════════════════════════
+
+function buildMethodList() {
+  const container = document.getElementById('methodList');
+  container.innerHTML = '';
+
+  CATEGORIES.forEach(cat => {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'method-category';
+
+    const title = document.createElement('div');
+    title.className = 'method-category-title';
+    title.textContent = cat.label;
+    catDiv.appendChild(title);
+
+    cat.methods.forEach(m => {
+      const item = document.createElement('div');
+      item.className = 'method-item';
+
+      const cb = document.createElement('input');
+      cb.type    = 'checkbox';
+      cb.id      = `cb-${m.key}`;
+      cb.checked = state.enabledMethods.has(m.key);
+      cb.addEventListener('change', () => {
+        if (cb.checked) state.enabledMethods.add(m.key);
+        else            state.enabledMethods.delete(m.key);
+        saveSettings();
+        document.getElementById('methodCount').textContent = `${state.enabledMethods.size}選択中`;
+        render();
+      });
+
+      const label = document.createElement('label');
+      label.htmlFor   = `cb-${m.key}`;
+      label.textContent = m.label;
+
+      item.appendChild(cb);
+      item.appendChild(label);
+      catDiv.appendChild(item);
+    });
+
+    container.appendChild(catDiv);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 銘柄管理ドロワー
+// ═══════════════════════════════════════════════════════════════
+
+function buildStockList() {
+  const wrap = document.getElementById('stockListWrap');
+  wrap.innerHTML = '';
+
+  if (state.stocks.length === 0) {
+    wrap.innerHTML = '<div style="color:#90A4AE;font-size:13px;padding:10px 0">銘柄が登録されていません</div>';
+    return;
+  }
+
+  state.stocks.forEach((s, idx) => {
+    const row = document.createElement('div');
+    row.className = 'stock-row';
+    row.innerHTML = `
+      <div class="stock-row-info">
+        <span class="stock-row-code">${s.code}</span>
+        <span class="stock-row-name">${s.name || ''}</span>
+      </div>
+      <button class="btn btn-danger" onclick="removeStock(${idx})">削除</button>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
+async function addStock() {
+  const input = document.getElementById('stockCodeInput');
+  const code  = input.value.trim();
+  if (!code || !/^\d{4}$/.test(code)) {
+    alert('4桁の銘柄コードを入力してください');
+    return;
+  }
+  if (state.stocks.some(s => s.code === code)) {
+    alert(`${code} は既に登録されています`);
+    return;
+  }
+  if (state.stocks.length >= 100) {
+    alert('銘柄は最大100件まで登録できます');
+    return;
+  }
+
+  state.stocks.push({ code, name: '' });
+  saveSettings();
+  buildStockList();
+  input.value = '';
+  syncStocksAndRun();
+}
+
+function removeStock(idx) {
+  if (!confirm(`${state.stocks[idx].code} を削除しますか？`)) return;
+  state.stocks.splice(idx, 1);
+  saveSettings();
+  buildStockList();
+  syncStocksAndRun();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ドロワー開閉
+// ═══════════════════════════════════════════════════════════════
+
+function openDrawer(type) {
+  document.getElementById(`${type}Overlay`).classList.add('open');
+  document.getElementById(`${type}Drawer`).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer(type) {
+  document.getElementById(`${type}Overlay`).classList.remove('open');
+  document.getElementById(`${type}Drawer`).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 起動
+// ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════
+// 手動分析実行
+// ═══════════════════════════════════════════════════════════════
+
+const GH_OWNER    = 'yagiyagisansam';
+const GH_REPO     = 'stockscan';
+const GH_WORKFLOW    = 'stock-analysis.yml';
+const GH_STOCKS_PATH = 'data/stocks.json';
+let stocksJsonSha = null;
+
+function handleRunClick() {
+  const token = localStorage.getItem('gh_pat');
+  if (!token) {
+    document.getElementById('patModal').classList.add('open');
+    document.getElementById('patInput').value = '';
+    setTimeout(() => document.getElementById('patInput').focus(), 100);
+  } else {
+    triggerAnalysis(token);
+  }
+}
+
+function closePatModal() {
+  document.getElementById('patModal').classList.remove('open');
+}
+
+async function savePatAndRun() {
+  const token = document.getElementById('patInput').value.trim();
+  if (!token) return;
+  localStorage.setItem('gh_pat', token);
+  closePatModal();
+  if (state.pendingStocksSync) {
+    state.pendingStocksSync = false;
+    const ok = await pushStocksToGitHub(token);
+    if (ok) { triggerAnalysis(token); }
+    else { showRunBar('銘柄リストの更新に失敗しました（PATの権限を確認してください）'); }
+  } else {
+    triggerAnalysis(token);
+  }
+}
+
+async function fetchStocksSha(token) {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_STOCKS_PATH}`,
+      { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' } }
+    );
+    if (res.ok) { const d = await res.json(); stocksJsonSha = d.sha; }
+  } catch(e) {}
+}
+
+async function pushStocksToGitHub(token) {
+  if (!stocksJsonSha) await fetchStocksSha(token);
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(state.stocks, null, 2))));
+  const res = await fetch(
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_STOCKS_PATH}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: 'chore: update stocks list from UI', content, sha: stocksJsonSha }),
+    }
+  );
+  if (res.ok) { const d = await res.json(); stocksJsonSha = d.content.sha; return true; }
+  return false;
+}
+
+async function syncStocksAndRun() {
+  const token = localStorage.getItem('gh_pat');
+  if (!token) {
+    state.pendingStocksSync = true;
+    document.getElementById('patModal').classList.add('open');
+    document.getElementById('patInput').value = '';
+    setTimeout(() => document.getElementById('patInput').focus(), 100);
+    return;
+  }
+  showRunBar('銘柄リストをGitHubに反映・分析を実行中...');
+  const ok = await pushStocksToGitHub(token);
+  if (ok) { triggerAnalysis(token); }
+  else { showRunBar('銘柄リストの更新に失敗しました（PATの権限を確認してください）'); }
+}
+
+async function triggerAnalysis(token) {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept':        'application/vnd.github.v3+json',
+          'Content-Type':  'application/json',
+        },
+        body: JSON.stringify({ ref: 'main' }),
+      }
+    );
+
+    if (res.status === 204) {
+      showRunBar('分析を実行中です（約5〜10分かかります）');
+      btn.textContent = '実行中...';
+      pollUntilDone(token);
+    } else if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('gh_pat');
+      btn.disabled = false;
+      btn.textContent = '▶ 今すぐ分析';
+      alert('認証エラー: PATを確認してください（workflow権限が必要です）');
+    } else {
+      btn.disabled = false;
+      btn.textContent = '▶ 今すぐ分析';
+      alert(`エラー ${res.status}: 実行できませんでした`);
+    }
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = '▶ 今すぐ分析';
+    alert('ネットワークエラー: ' + e.message);
+  }
+}
+
+function showRunBar(msg) {
+  const bar = document.getElementById('runBar');
+  document.getElementById('runBarMsg').textContent = msg;
+  bar.classList.add('visible');
+}
+
+function hideRunBar() {
+  document.getElementById('runBar').classList.remove('visible');
+}
+
+async function pollUntilDone(token) {
+  // 1分待ってからポーリング開始
+  await sleep(60000);
+
+  for (let i = 0; i < 20; i++) {
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/runs?per_page=1`,
+        { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' } }
+      );
+      const data = await res.json();
+      const run  = data.workflow_runs?.[0];
+
+      if (run?.status === 'completed') {
+        if (run.conclusion === 'success') {
+          showRunBar('✅ 分析完了！データを更新します...');
+          await sleep(2000);
+          hideRunBar();
+          loadData();
+        } else {
+          showRunBar(`⚠ 分析が ${run.conclusion} で終了しました`);
+          await sleep(4000);
+          hideRunBar();
+        }
+        const btn = document.getElementById('runBtn');
+        btn.disabled = false;
+        btn.textContent = '▶ 今すぐ分析';
+        return;
+      }
+
+      const elapsed = Math.round((i + 1) * 0.5 + 1);
+      showRunBar(`分析実行中... (${elapsed}分経過)`);
+    } catch (e) {}
+
+    await sleep(30000);
+  }
+
+  // タイムアウト（10分超）
+  hideRunBar();
+  const btn = document.getElementById('runBtn');
+  btn.disabled = false;
+  btn.textContent = '▶ 今すぐ分析';
+  alert('タイムアウト: GitHub Actions の進捗は Actions タブで確認してください');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// PAT削除ボタン（銘柄管理ドロワーのフッターに追加）
+function clearPat() {
+  localStorage.removeItem('gh_pat');
+  alert('PATを削除しました');
+}
+
+loadSettings();
+loadData();
+</script>
+</body>
+</html>
