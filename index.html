@@ -108,7 +108,9 @@ body{
   background:#F5F5F5;color:#546E7A;
   border-radius:99px;padding:2px 9px;
   font-size:11px;border:1px solid #ECEFF1;
+  cursor:pointer;
 }
+.sbadge-active{background:#FFB300!important;color:#fff!important;outline:1.5px solid #FF8F00}
 
 /* ── パターン + チャートセクション ── */
 .card-body{padding:12px 16px 16px}
@@ -1249,7 +1251,7 @@ function buildCard(s, idx) {
       b.className = 'mbadge';
       b.textContent = m.label;
       b.dataset.chartId = `chart-${s.code}-${idx}`;
-      b.addEventListener('click', () => togglePatternOverlay(`chart-${s.code}-${idx}`, m.key, b));
+      b.addEventListener('click', () => togglePatternOverlay(`chart-${s.code}-${idx}`, m.key, b, false));
       badges.appendChild(b);
     });
     card.appendChild(badges);
@@ -1267,6 +1269,8 @@ function buildCard(s, idx) {
       const b = document.createElement('span');
       b.className = 'sbadge';
       b.textContent = m.label;
+      b.dataset.chartId = `chart-${s.code}-${idx}`;
+      b.addEventListener('click', () => togglePatternOverlay(`chart-${s.code}-${idx}`, m.key, b, true));
       suppDiv.appendChild(b);
     });
     card.appendChild(suppDiv);
@@ -1416,7 +1420,7 @@ function renderChart(chartId, dailyData, weeklyData) {
     weeklyData: weeklyData || [],
     isWeekly: false,
     currentData: data,
-    patternLine: null,
+    patternLines: [],
   };
 }
 
@@ -1442,13 +1446,13 @@ function toggleWeekly(chartId) {
   co.volChart.timeScale().fitContent();
 
   // パターンオーバーレイをクリア
-  if (co.patternLine) {
-    co.priceChart.removeSeries(co.patternLine);
-    co.patternLine = null;
-  }
+  (co.patternLines || []).forEach(s => { try { co.priceChart.removeSeries(s); } catch(e){} });
+  co.patternLines = [];
+  try { co.candleSeries.setMarkers([]); } catch(e){}
   document.querySelectorAll(`[data-chart-id="${chartId}"]`).forEach(b => {
     b.dataset.active = '0';
     b.classList.remove('mbadge-active');
+    b.classList.remove('sbadge-active');
   });
 
   const btn = document.getElementById(`${chartId}-toggle`);
@@ -1466,110 +1470,334 @@ function toggleWeekly(chartId) {
 
 // ── パターンネックライン計算 ────────────────────────────────
 
-function computeNeckline(patternKey, data) {
-  if (!data || data.length < 10) return null;
+function computePatternOverlay(patternKey, data) {
+  if (!data || data.length < 5) return { markers: [], hlines: [] };
   const n = data.length;
+  const result = { markers: [], hlines: [] };
   const closes = data.map(d => d.close);
   const highs  = data.map(d => d.high);
   const lows   = data.map(d => d.low);
 
-  const findMinima = (win) => {
+  const addMark = (i, text, color, position, shape) => {
+    color    = color    || '#FF6F00';
+    position = position || 'belowBar';
+    shape    = shape    || 'arrowUp';
+    if (i >= 0 && i < n) result.markers.push({ time: data[i].time, position, shape, color, text });
+  };
+  const addHLine = (price, title, color, style) => {
+    if (price == null || isNaN(price)) return;
+    result.hlines.push({ price, title, color: color || '#FF6F00', style: style !== undefined ? style : 2 });
+  };
+  const findMinima = (win, from, to) => {
+    from = from || 0; to = to || n;
     const m = [];
-    for (let i = win; i < n - win; i++) {
-      const seg = closes.slice(Math.max(0, i - win), i + win + 1);
-      if (closes[i] === Math.min(...seg)) m.push({ i, val: closes[i] });
+    for (let i = Math.max(from, win); i < Math.min(to, n - win); i++) {
+      let isMin = true;
+      for (let j = Math.max(0, i - win); j <= Math.min(n - 1, i + win); j++) {
+        if (j !== i && closes[j] < closes[i]) { isMin = false; break; }
+      }
+      if (isMin) m.push({ i, val: closes[i] });
     }
     return m;
   };
 
   switch (patternKey) {
+    case 'bullish_engulfing':
+      addMark(n-2, '①', '#FF6F00');
+      addMark(n-1, '包', '#FF6F00');
+      break;
+    case 'hammer':
+      addMark(n-1, 'ハンマー', '#FF6F00');
+      break;
+    case 'morning_star':
+    case 'sankasen_akebono':
+      addMark(n-3, '①', '#FF6F00');
+      addMark(n-2, '★', '#FF6F00', 'belowBar', 'circle');
+      addMark(n-1, '③', '#FF6F00');
+      break;
+    case 'three_white_soldiers':
+      addMark(n-3, '①', '#E91E63');
+      addMark(n-2, '②', '#E91E63');
+      addMark(n-1, '③', '#E91E63');
+      break;
+    case 'gap_up':
+    case 'uwabane_large':
+      addMark(n-2, '', '#FF6F00', 'aboveBar', 'arrowDown');
+      addMark(n-1, '窓', '#FF6F00');
+      addHLine(highs[n-2], '窓下限（前日高値）', '#FF9800', 0);
+      break;
+    case 'narabiaka':
+      addMark(n-3, '', '#FF6F00', 'aboveBar', 'arrowDown');
+      addMark(n-2, '①', '#FF6F00');
+      addMark(n-1, '②', '#FF6F00');
+      addHLine(highs[n-3], '窓下限', '#FF9800', 0);
+      break;
+    case 'island_reversal':
+      addMark(n-1, '↑', '#FF6F00');
+      addHLine(lows[n-1], '窓上限（当日安値）', '#FF9800', 0);
+      break;
+    case 'large_bullish_5pct':
+      addMark(n-1, '大陽', '#E91E63');
+      break;
+    case 'engulfing_vol':
+    case 'gap_vol':
+      addMark(n-2, '①', '#FF6F00');
+      addMark(n-1, '②', '#FF6F00');
+      break;
+    case 'v_recovery':
+      addMark(n-3, '↓', '#FF6F00', 'aboveBar', 'arrowDown');
+      addMark(n-2, '底', '#FF6F00', 'belowBar', 'circle');
+      addMark(n-1, '↑', '#FF6F00');
+      break;
+    case 'vol_surge_150':
+    case 'vol_surge_200':
+    case 'new_high_vol':
+    case 'pocket_pivot':
+      addMark(n-1, '↑', '#FF6F00');
+      break;
+    case 'vol_dry_surge': {
+      for (let i = Math.max(0, n-6); i < n-1; i++) addMark(i, '', '#90A4AE', 'aboveBar', 'circle');
+      addMark(n-1, '急増', '#FF6F00');
+      break;
+    }
+    case 'vol_acceleration':
+      addMark(n-3, '①', '#FF6F00');
+      addMark(n-2, '②', '#FF6F00');
+      addMark(n-1, '③', '#FF6F00');
+      break;
+    case 'perfect_order':
+    case 'price_above_all_ma':
+    case 'canslim':
+    case 'ppp': {
+      addMark(n-1, '↑', '#FF6F00');
+      const last = data[n-1];
+      if (last.ma5  != null) addHLine(last.ma5,  '5MA',  '#4CAF50', 0);
+      if (last.ma25 != null) addHLine(last.ma25, '25MA', '#A5D6A7', 0);
+      if (last.ma75 != null) addHLine(last.ma75, '75MA', '#F48FB1', 0);
+      break;
+    }
+    case 'gc_25_75':
+      addMark(n-1, 'GC', '#FF6F00');
+      if (data[n-1].ma25 != null) addHLine(data[n-1].ma25, 'GC点（25MA=75MA）', '#FF6F00', 0);
+      break;
+    case 'ma25_debut':
+      addMark(n-1, '↑', '#FF6F00');
+      if (data[n-1].ma25 != null) addHLine(data[n-1].ma25, '25MAデビュー', '#A5D6A7', 0);
+      break;
+    case 'ma75_recovery':
+    case 'weinstein_stage2':
+      addMark(n-1, '↑', '#FF6F00');
+      if (data[n-1].ma75 != null) addHLine(data[n-1].ma75, '75MA突破', '#F48FB1', 0);
+      break;
+    case 'ma_squeeze_breakout': {
+      for (let i = Math.max(0, n-12); i < n-1; i++) addMark(i, '', '#90A4AE', 'aboveBar', 'circle');
+      addMark(n-1, 'ブレイク', '#FF6F00');
+      break;
+    }
+    case '52week_high':
+    case 'alltime_high':
+      addMark(n-1, '新高値', '#FF6F00');
+      break;
+    case 'obv_new_high':
+      addMark(n-1, 'OBV↑', '#FF6F00');
+      break;
+    case 'williams_r':
+      addMark(n-1, '↑', '#FF6F00');
+      break;
+    case 'ma25_touch_rebound':
+      addMark(n-2, '', '#FF6F00', 'belowBar', 'circle');
+      addMark(n-1, '↑', '#FF6F00');
+      if (data[n-1].ma25 != null) addHLine(data[n-1].ma25, '25MAタッチ', '#A5D6A7', 0);
+      break;
     case 'double_bottom': {
-      const m = findMinima(3);
+      const m = findMinima(3, Math.max(0, n-45));
       if (m.length >= 2) {
-        const [a, b] = m.slice(-2);
-        return { price: Math.max(...closes.slice(a.i, b.i + 1)), label: 'ネックライン(W底)' };
+        const a = m[m.length-2], b = m[m.length-1];
+        addMark(a.i, 'W①', '#FF6F00', 'belowBar', 'arrowDown');
+        addMark(b.i, 'W②', '#FF6F00', 'belowBar', 'arrowDown');
+        addHLine(Math.max(...closes.slice(a.i, b.i + 1)), 'ネックライン(W底)', '#FF6F00', 2);
       }
-      return null;
+      addMark(n-1, '↑', '#4CAF50');
+      break;
     }
     case 'triple_bottom': {
-      const m = findMinima(3);
+      const m = findMinima(3, Math.max(0, n-45));
       if (m.length >= 3) {
-        const [a, , c] = m.slice(-3);
-        return { price: Math.max(...closes.slice(a.i, c.i + 1)), label: 'ネックライン(三底)' };
+        const a = m[m.length-3], b = m[m.length-2], c = m[m.length-1];
+        addMark(a.i, '底①', '#FF6F00', 'belowBar', 'arrowDown');
+        addMark(b.i, '底②', '#FF6F00', 'belowBar', 'arrowDown');
+        addMark(c.i, '底③', '#FF6F00', 'belowBar', 'arrowDown');
+        addHLine(Math.max(...closes.slice(a.i, c.i + 1)), 'ネックライン(三底)', '#FF6F00', 2);
       }
-      return null;
+      addMark(n-1, '↑', '#4CAF50');
+      break;
     }
     case 'inv_head_shoulders': {
-      const m = findMinima(4);
+      const m = findMinima(4, Math.max(0, n-60));
       if (m.length >= 3) {
-        const [ls, , rs] = m.slice(-3);
-        return { price: Math.max(...closes.slice(ls.i, rs.i + 1)), label: 'ネックライン(逆H&S)' };
+        const ls = m[m.length-3], hd = m[m.length-2], rs = m[m.length-1];
+        addMark(ls.i, 'LS', '#FF6F00', 'belowBar', 'arrowDown');
+        addMark(hd.i, 'H',  '#E91E63', 'belowBar', 'arrowDown');
+        addMark(rs.i, 'RS', '#FF6F00', 'belowBar', 'arrowDown');
+        addHLine(Math.max(...closes.slice(ls.i, rs.i + 1)), 'ネックライン(逆H&S)', '#FF6F00', 2);
       }
-      return null;
+      addMark(n-1, '↑', '#4CAF50');
+      break;
     }
     case 'inv_triple_bottom': {
-      const m = findMinima(4);
+      const m = findMinima(4, Math.max(0, n-60));
       if (m.length >= 3) {
-        const [a, , c] = m.slice(-3);
-        return { price: Math.max(...closes.slice(a.i, c.i + 1)), label: 'ネックライン(逆三山)' };
+        const a = m[m.length-3], b = m[m.length-2], c = m[m.length-1];
+        addMark(a.i, '底①', '#FF6F00', 'belowBar', 'arrowDown');
+        addMark(b.i, '底②', '#FF6F00', 'belowBar', 'arrowDown');
+        addMark(c.i, '底③', '#FF6F00', 'belowBar', 'arrowDown');
+        addHLine(Math.max(...closes.slice(a.i, c.i + 1)), 'ネックライン(逆三山)', '#FF6F00', 2);
       }
-      return null;
+      addMark(n-1, '↑', '#4CAF50');
+      break;
     }
-    case 'cup_with_handle':
-      return { price: Math.max(...closes.slice(-55, -10).slice(-5)), label: 'ピボットライン' };
+    case 'cup_with_handle': {
+      const cs = Math.max(0, n-55);
+      const ce = Math.max(0, n-10);
+      const cup = closes.slice(cs, ce);
+      if (cup.length > 0) {
+        const cupBottom    = Math.min(...cup);
+        const cupBotOff    = cup.indexOf(cupBottom);
+        const cupRightHigh = Math.max(...cup.slice(-5));
+        addMark(cs, 'カップ左', '#FF6F00', 'aboveBar', 'arrowDown');
+        addMark(cs + cupBotOff, '底', '#FF6F00', 'belowBar', 'arrowDown');
+        addMark(ce - 1, 'カップ右', '#FF6F00', 'aboveBar', 'arrowDown');
+        for (let i = ce; i < n-1; i++) addMark(i, '', '#90A4AE', 'aboveBar', 'circle');
+        addHLine(cupRightHigh, 'ピボット（ブレイク水準）', '#FF6F00', 2);
+      }
+      addMark(n-1, '↑ブレイク', '#4CAF50');
+      break;
+    }
+    case 'flag': {
+      addMark(n-20, '竿底', '#FF6F00');
+      addMark(n-11, '竿頂', '#FF6F00', 'aboveBar', 'arrowDown');
+      for (let i = n-10; i < n-1; i++) addMark(i, '', '#90A4AE', 'aboveBar', 'circle');
+      addHLine(Math.max(...closes.slice(Math.max(0,n-10), n-1)), '旗上端', '#FF9800', 2);
+      addMark(n-1, 'ブレイク', '#4CAF50');
+      break;
+    }
+    case 'vcp': {
+      const s1 = Math.max(0,n-60), s2 = Math.max(0,n-40), s3 = Math.max(0,n-20), s4 = Math.max(0,n-5);
+      if (s2 > s1) addHLine(Math.max(...closes.slice(s1,s2)), 'VCP段階①', '#90A4AE', 2);
+      if (s3 > s2) addHLine(Math.max(...closes.slice(s2,s3)), 'VCP段階②', '#FF9800', 2);
+      if (s4 > s3) addHLine(Math.max(...closes.slice(s3,s4)), 'VCP段階③（ブレイク水準）', '#FF6F00', 2);
+      addMark(n-1, '↑', '#4CAF50');
+      break;
+    }
+    case 'tight_area': {
+      for (let i = Math.max(0,n-8); i < n; i++) addMark(i, '', '#90A4AE', 'aboveBar', 'circle');
+      addHLine(Math.min(...lows.slice(Math.max(0,n-8))),  '保ち合い下限', '#90A4AE', 2);
+      addHLine(Math.max(...highs.slice(Math.max(0,n-8))), '保ち合い上限', '#FF6F00', 2);
+      break;
+    }
+    case 'high_level_tight':
+    case 'super_tight': {
+      const days = patternKey === 'super_tight' ? 5 : 15;
+      for (let i = Math.max(0,n-days); i < n; i++) addMark(i, '', '#90A4AE', 'aboveBar', 'circle');
+      addHLine(Math.min(...lows.slice(Math.max(0,n-days))),  '保ち合い下限', '#90A4AE', 2);
+      addHLine(Math.max(...highs.slice(Math.max(0,n-days))), 'ブレイク水準', '#FF6F00', 2);
+      break;
+    }
     case 'ascending_triangle':
-      return { price: Math.max(...highs.slice(-61, -1)), label: '抵抗線' };
-    case 'flag':
-      return { price: Math.max(...closes.slice(-20, -10)), label: '旗竿トップ' };
+      addHLine(Math.max(...highs.slice(Math.max(0,n-61), n-1)), '上値抵抗線', '#FF6F00', 2);
+      addMark(n-1, 'ブレイク', '#4CAF50');
+      break;
+    case 'saucer_bottom': {
+      const f90 = Math.max(0,n-90);
+      const sc  = closes.slice(f90);
+      if (sc.length > 0) {
+        const bv = Math.min(...sc), bo = sc.indexOf(bv);
+        addMark(f90, '開始', '#FF6F00', 'belowBar', 'circle');
+        addMark(f90 + bo, '底', '#FF6F00', 'belowBar', 'arrowDown');
+        addHLine(Math.max(...highs.slice(f90)), '円形底上値', '#FF6F00', 2);
+      }
+      addMark(n-1, '↑', '#4CAF50');
+      break;
+    }
+    case 'high_tight_flag': {
+      const f60 = Math.max(0,n-60);
+      const r60 = closes.slice(f60);
+      if (r60.length > 0) {
+        const pv = Math.max(...r60);
+        const po = r60.lastIndexOf(pv);
+        const pi = f60 + po;
+        addMark(pi, 'ピーク', '#E91E63', 'aboveBar', 'arrowDown');
+        for (let i = pi+1; i < n-1; i++) addMark(i, '', '#90A4AE', 'aboveBar', 'circle');
+        addHLine(pv, 'ピーク', '#FF6F00', 2);
+      }
+      addMark(n-1, 'ブレイク', '#4CAF50');
+      break;
+    }
     case 'base_breakout':
-    case 'neckline_vol':
-      return { price: Math.max(...highs.slice(-21, -1)), label: 'ネックライン' };
-    case 'vcp':
-    case 'tight_area':
-      return { price: Math.min(...lows.slice(-10)), label: 'サポートライン' };
-    case 'high_tight_flag':
-      return { price: Math.max(...closes.slice(-60)), label: 'ピーク' };
-    case 'saucer_bottom':
-      return { price: Math.max(...highs.slice(-90)), label: '円形底上値' };
+    case 'neckline_vol': {
+      for (let i = Math.max(0,n-21); i < n-1; i++) addMark(i, '', '#90A4AE', 'aboveBar', 'circle');
+      addHLine(Math.max(...highs.slice(Math.max(0,n-21), n-1)), 'ネックライン', '#FF6F00', 2);
+      addMark(n-1, 'ブレイク', '#4CAF50');
+      break;
+    }
+    case 'weekly_po_first':
+      addMark(n-1, 'PO', '#FF6F00');
+      if (data[n-1].ma5  != null) addHLine(data[n-1].ma5,  '週5MA',  '#4CAF50', 0);
+      if (data[n-1].ma25 != null) addHLine(data[n-1].ma25, '週13MA', '#A5D6A7', 0);
+      if (data[n-1].ma75 != null) addHLine(data[n-1].ma75, '週26MA', '#F48FB1', 0);
+      break;
     default:
-      return null;
+      addMark(n-1, '↑', '#FF6F00');
+      break;
   }
+
+  return result;
 }
 
-// ── パターンオーバーレイ表示トグル ──────────────────────────
-
-function togglePatternOverlay(chartId, patternKey, badgeEl) {
+function togglePatternOverlay(chartId, patternKey, badgeEl, isSupporting) {
   const co = state.charts[chartId];
   if (!co) return;
 
   const isActive = badgeEl.dataset.active === '1';
 
-  if (co.patternLine) {
-    co.priceChart.removeSeries(co.patternLine);
-    co.patternLine = null;
-  }
+  (co.patternLines || []).forEach(s => { try { co.priceChart.removeSeries(s); } catch(e){} });
+  co.patternLines = [];
+  try { co.candleSeries.setMarkers([]); } catch(e){}
+
   document.querySelectorAll(`[data-chart-id="${chartId}"]`).forEach(b => {
     b.dataset.active = '0';
     b.classList.remove('mbadge-active');
+    b.classList.remove('sbadge-active');
   });
 
   if (isActive) return;
 
-  const overlay = computeNeckline(patternKey, co.currentData);
+  const overlay = computePatternOverlay(patternKey, co.currentData);
   if (!overlay) return;
 
-  const lineSeries = co.priceChart.addLineSeries({
-    color: '#FF6F00', lineWidth: 2, lineStyle: 2,
-    priceLineVisible: false, lastValueVisible: true,
-    title: overlay.label,
+  if (overlay.markers && overlay.markers.length > 0) {
+    const sorted = [...overlay.markers].sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+    try { co.candleSeries.setMarkers(sorted); } catch(e){}
+  }
+
+  (overlay.hlines || []).forEach(hl => {
+    try {
+      const ls = co.priceChart.addLineSeries({
+        color: hl.color || '#FF6F00',
+        lineWidth: 1.5,
+        lineStyle: hl.style !== undefined ? hl.style : 2,
+        priceLineVisible: false,
+        lastValueVisible: true,
+        title: hl.title || '',
+      });
+      ls.setData(co.currentData.map(d => ({ time: d.time, value: hl.price })));
+      co.patternLines.push(ls);
+    } catch(e){}
   });
-  lineSeries.setData(co.currentData.map(d => ({ time: d.time, value: overlay.price })));
-  co.patternLine = lineSeries;
 
   badgeEl.dataset.active = '1';
-  badgeEl.classList.add('mbadge-active');
+  badgeEl.classList.add(isSupporting ? 'sbadge-active' : 'mbadge-active');
 }
-
 // ═══════════════════════════════════════════════════════════════
 // 手法ドロワー
 // ═══════════════════════════════════════════════════════════════
