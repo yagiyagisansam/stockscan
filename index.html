@@ -1444,7 +1444,7 @@ function toggleWeekly(chartId) {
     time: d.time, value: d.volume,
     color: d.close >= d.open ? 'rgba(198,40,40,.6)' : 'rgba(144,196,249,.7)',
   })));
-  const _toggleBars = co.isWeekly ? 13 : 65;
+  const _toggleBars = co.isWeekly ? 52 : 65;
   const _toggleRange = { from: Math.max(0, data.length - _toggleBars), to: data.length + 2 };
   co.priceChart.timeScale().setVisibleLogicalRange(_toggleRange);
   co.volChart.timeScale().setVisibleLogicalRange(_toggleRange);
