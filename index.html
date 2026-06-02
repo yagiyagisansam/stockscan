@@ -404,7 +404,7 @@ body{
     <button class="btn btn-primary" onclick="addStock()">追加</button>
   </div>
   <div class="stock-note" id="stockNote">
-    銘柄を追加・削除するとGitHubへ自動反映し、分析を即時実行します（PATが必要です）。
+    銘柄を追加・削除するとGitHubの銘柄リストへ自動反映します（PATが必要です）。
   </div>
   <div style="padding:0 16px 8px;display:flex;justify-content:flex-end">
     <button class="btn" style="background:none;color:#90A4AE;font-size:11px;padding:0;height:auto"
@@ -1875,6 +1875,19 @@ function buildStockList() {
   });
 }
 
+async function fetchStockName(code) {
+  try {
+    const res = await fetch(
+      `https://query2.finance.yahoo.com/v8/finance/chart/${code}.T?interval=1d&range=1d`,
+      { signal: AbortSignal.timeout(5000) }
+    );
+    if (!res.ok) return '';
+    const data = await res.json();
+    const meta = data?.chart?.result?.[0]?.meta;
+    return meta?.longName || meta?.shortName || '';
+  } catch(e) { return ''; }
+}
+
 async function addStock() {
   const input = document.getElementById('stockCodeInput');
   const code  = input.value.trim();
@@ -1892,10 +1905,16 @@ async function addStock() {
   }
 
   state.stocks.push({ code, name: '' });
-  saveSettings();
-  buildStockList();
   input.value = '';
-  syncStocksAndRun();
+  buildStockList();
+
+  const name = await fetchStockName(code);
+  if (name) {
+    const s = state.stocks.find(s => s.code === code);
+    if (s) { s.name = name; buildStockList(); }
+  }
+  saveSettings();
+  syncStocksOnly();
 }
 
 function removeStock(idx) {
@@ -1903,7 +1922,7 @@ function removeStock(idx) {
   state.stocks.splice(idx, 1);
   saveSettings();
   buildStockList();
-  syncStocksAndRun();
+  syncStocksOnly();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1959,7 +1978,7 @@ async function savePatAndRun() {
   if (state.pendingStocksSync) {
     state.pendingStocksSync = false;
     const ok = await pushStocksToGitHub(token);
-    if (ok) { triggerAnalysis(token); }
+    if (ok) { showRunBar('銘柄リストを更新しました'); }
     else { showRunBar('銘柄リストの更新に失敗しました（PATの権限を確認してください）'); }
   } else {
     triggerAnalysis(token);
@@ -1995,7 +2014,7 @@ async function pushStocksToGitHub(token) {
   return false;
 }
 
-async function syncStocksAndRun() {
+async function syncStocksOnly() {
   const token = localStorage.getItem('gh_pat');
   if (!token) {
     state.pendingStocksSync = true;
@@ -2004,9 +2023,9 @@ async function syncStocksAndRun() {
     setTimeout(() => document.getElementById('patInput').focus(), 100);
     return;
   }
-  showRunBar('銘柄リストをGitHubに反映・分析を実行中...');
+  showRunBar('銘柄リストをGitHubに反映中...');
   const ok = await pushStocksToGitHub(token);
-  if (ok) { triggerAnalysis(token); }
+  if (ok) { showRunBar('銘柄リストを更新しました'); }
   else { showRunBar('銘柄リストの更新に失敗しました（PATの権限を確認してください）'); }
 }
 
