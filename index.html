@@ -16,21 +16,6 @@ body{
   background:#ECEFF1;color:#263238;
 }
 
-/* ── ナビ ── */
-.kb-nav{
-  background:#0A3270;
-  display:flex;align-items:stretch;
-  padding:0 12px;gap:4px;overflow-x:auto;
-}
-.kb-nav a{
-  display:inline-flex;align-items:center;
-  padding:9px 16px;font-size:13px;font-weight:bold;
-  color:#90CAF9;text-decoration:none;
-  border-radius:4px 4px 0 0;transition:background .15s;white-space:nowrap;
-}
-.kb-nav a:hover{background:rgba(255,255,255,.1);color:#fff}
-.kb-nav a.active{background:#0D47A1;color:#fff}
-
 /* ── ヘッダー ── */
 .hdr{
   background:#0D47A1;color:#fff;
@@ -319,13 +304,6 @@ body{
 </style>
 </head>
 <body>
-
-<!-- ナビゲーション -->
-<nav class="kb-nav">
-  <a href="https://yagiyagisansam.github.io/keiba-ev/">競馬EV</a>
-  <a href="https://yagiyagisansam.github.io/keiba-ev/umatan.html">馬単</a>
-  <a href="/" class="active">StockScan JP</a>
-</nav>
 
 <!-- ヘッダー -->
 <div class="hdr">
@@ -794,6 +772,7 @@ const PATTERN_INFO = {
     </svg>`,
     desc: '年初来高値の90%圏内での超タイト保ち合い後のブレイク。上昇途中での一段高前のセットアップ。',
   },
+  // ── A群 ──
   large_bullish_5pct: {
     svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
       <line x1="36" y1="2" x2="36" y2="58" stroke="#1b5e20" stroke-width="1.5"/>
@@ -812,6 +791,7 @@ const PATTERN_INFO = {
     </svg>`,
     desc: '前日高値を超えて窓開け（1〜10%）＋実体3%以上＋出来高MA25の2倍以上。機関買いの強い窓。',
   },
+  // ── B群 ──
   sankasen_akebono: {
     svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
       <line x1="18" y1="4" x2="18" y2="52" stroke="#c62828" stroke-width="1.5"/>
@@ -872,6 +852,7 @@ const PATTERN_INFO = {
     </svg>`,
     desc: '窓開け陽線の翌日、同じ始値水準（±3%）・同サイズ（50〜150%）の陽線。機関の継続買いを示す。',
   },
+  // ── C群 ──
   ma25_touch_rebound: {
     svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
       <path d="M4 20 Q36 28 68 14" stroke="#fb8c00" stroke-width="1.5" fill="none"/>
@@ -900,6 +881,7 @@ const PATTERN_INFO = {
     </svg>`,
     desc: '前日は非PO→当日初めてPO成立（株価>5MA>25MA>75MA、全MA上向き）。相場師朗のパンパカパン初達成シグナル。',
   },
+  // ── D群 ──
   vol_surge_200: {
     svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
       <rect x="14" y="38" width="10" height="14" fill="#90CAF9"/>
@@ -944,6 +926,7 @@ const PATTERN_INFO = {
     </svg>`,
     desc: '3日連続陽線＋終値上昇＋出来高加速（各日増加）。強いモメンタムの継続確認シグナル。',
   },
+  // ── E群 ──
   super_tight: {
     svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
       <line x1="4" y1="30" x2="68" y2="30" stroke="#c62828" stroke-width="1" stroke-dasharray="3,2"/>
@@ -963,6 +946,7 @@ const PATTERN_INFO = {
     </svg>`,
     desc: '56日以内に100%超の急騰後、20%以内で1〜6週調整＋出来高枯れ→急増ブレイク。O\'Neil最高評価パターン。',
   },
+  // ── F群 ──
   v_recovery: {
     svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
       <polyline points="4,10 36,50 68,12" stroke="#1565c0" stroke-width="2" fill="none"/>
@@ -986,6 +970,7 @@ const PATTERN_INFO = {
     </svg>`,
     desc: '90日間のU字形底値（放物線フィット）。底が中央70%内＋後半出来高>前半＋現在90日高値90%以上。',
   },
+  // ── G群 ──
   ascending_triangle: {
     svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
       <line x1="4" y1="16" x2="68" y2="16" stroke="#c62828" stroke-width="1.5"/>
@@ -1011,6 +996,7 @@ const PATTERN_INFO = {
     </svg>`,
     desc: '20日値幅10%以内のベース内で直近5〜10日高値を出来高×1.3で突破。MA25上。O\'Neil中間ピボット。',
   },
+  // ── I群 ──
   williams_r: {
     svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
       <line x1="4" y1="50" x2="68" y2="50" stroke="#c62828" stroke-width="1" stroke-dasharray="3,2"/>
@@ -1021,6 +1007,7 @@ const PATTERN_INFO = {
     </svg>`,
     desc: '過去14日に%R≤-80（売られすぎ）→現在%R≥-50への回復＋MA25上向き。リバウンド初動の検知。',
   },
+  // ── K群 ──
   canslim: {
     svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
       <path d="M4 52 Q36 38 68 10" stroke="#e53935" stroke-width="1.5" fill="none"/>
@@ -1061,9 +1048,9 @@ const ALL_KEYS = CATEGORIES.flatMap(c => c.methods.map(m => m.key));
 
 let state = {
   results:        null,
-  stocks:         [],
-  enabledMethods: new Set(ALL_KEYS),
-  charts:         {},
+  stocks:         [],     // ローカル管理の銘柄リスト
+  enabledMethods: new Set(ALL_KEYS),  // 全手法を初期選択
+  charts:         {},     // chartId → LightweightCharts instance
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -1100,6 +1087,8 @@ async function loadData() {
     ]);
     state.results = await resRes.json();
     const remoteStocks = await stockRes.json();
+
+    // ローカル管理銘柄がなければリモートをベースに
     if (state.stocks.length === 0) {
       state.stocks = remoteStocks;
       saveSettings();
@@ -1115,6 +1104,7 @@ async function loadData() {
 // ═══════════════════════════════════════════════════════════════
 
 function render() {
+  // ヘッダー更新
   const sub = document.getElementById('hdrSub');
   if (state.results && state.results.date !== '--') {
     sub.textContent = `最終更新: ${state.results.date}  登録: ${state.stocks.length}/100銘柄`;
@@ -1122,6 +1112,7 @@ function render() {
     sub.textContent = `登録: ${state.stocks.length}/100銘柄  （まだ分析未実行）`;
   }
 
+  // 手法カウント更新
   document.getElementById('methodCount').textContent = `${state.enabledMethods.size}選択中`;
 
   const main = document.getElementById('mainContent');
@@ -1129,6 +1120,7 @@ function render() {
 
   const stocks = (state.results && state.results.stocks) || [];
 
+  // 有効な手法でフィルタリング（単独 + 補助）
   const filtered = stocks.map(s => ({
     ...s,
     matches:    (s.matches    || []).filter(m => state.enabledMethods.has(m.key)),
@@ -1140,6 +1132,7 @@ function render() {
     !(s.supporting || []).some(m => state.enabledMethods.has(m.key))
   );
 
+  // マッチ数バッジ
   const mhdr = document.createElement('div');
   mhdr.className = 'match-header';
 
@@ -1165,10 +1158,12 @@ function render() {
   }
   main.appendChild(mhdr);
 
+  // マッチ銘柄カード
   filtered.forEach((s, idx) => {
     main.appendChild(buildCard(s, idx));
   });
 
+  // 未マッチ銘柄
   if (unmatched.length > 0) {
     const sec = document.createElement('div');
     sec.className = 'no-match-section';
@@ -1200,9 +1195,12 @@ function render() {
     main.appendChild(empty);
   }
 
+  // 手法ドロワーを更新
   buildMethodList();
   buildStockList();
 }
+
+// ─── 個別カード ────────────────────────────────────────────────
 
 function buildCard(s, idx) {
   const card = document.createElement('div');
@@ -1212,6 +1210,7 @@ function buildCard(s, idx) {
   const cls  = s.change > 0 ? 'up' : s.change < 0 ? 'down' : 'flat';
   const arrow = s.change > 0 ? '▲' : s.change < 0 ? '▼' : '─';
 
+  // カードヘッダー
   const hdr = document.createElement('div');
   hdr.className = 'card-header';
   hdr.innerHTML = `
@@ -1226,6 +1225,7 @@ function buildCard(s, idx) {
   `;
   card.appendChild(hdr);
 
+  // 単独シグナルバッジ
   if (s.matches && s.matches.length > 0) {
     const badges = document.createElement('div');
     badges.className = 'match-badges';
@@ -1238,6 +1238,7 @@ function buildCard(s, idx) {
     card.appendChild(badges);
   }
 
+  // 補助指標バッジ
   if (s.supporting && s.supporting.length > 0) {
     const suppDiv = document.createElement('div');
     suppDiv.className = 'supporting-badges';
@@ -1254,9 +1255,11 @@ function buildCard(s, idx) {
     card.appendChild(suppDiv);
   }
 
+  // カードボディ（パターン解説 + チャート）
   const body = document.createElement('div');
   body.className = 'card-body';
 
+  // 一致した各パターンの解説
   s.matches.forEach(m => {
     const info = PATTERN_INFO[m.key];
     if (!info) return;
@@ -1272,6 +1275,7 @@ function buildCard(s, idx) {
     body.appendChild(block);
   });
 
+  // チャート
   if (s.chart && s.chart.length > 0) {
     const chartWrap = document.createElement('div');
     chartWrap.className = 'chart-wrap mt8';
@@ -1282,12 +1286,16 @@ function buildCard(s, idx) {
       <div class="vol-container" id="${chartId}-vol"></div>
     `;
     body.appendChild(chartWrap);
+
+    // チャート描画は次のフレームで（DOM挿入後）
     setTimeout(() => renderChart(chartId, s.chart), 0);
   }
 
   card.appendChild(body);
   return card;
 }
+
+// ─── Lightweight Charts 描画 ────────────────────────────────
 
 function renderChart(chartId, data) {
   const priceEl = document.getElementById(`${chartId}-price`);
@@ -1307,6 +1315,7 @@ function renderChart(chartId, data) {
     height: 260,
   };
 
+  // ── 価格チャート ──
   const priceChart = LightweightCharts.createChart(priceEl, chartOpts);
 
   const candleSeries = priceChart.addCandlestickSeries({
@@ -1325,17 +1334,21 @@ function renderChart(chartId, data) {
     close: d.close,
   })));
 
+  // MA5
   const ma5Series = priceChart.addLineSeries({ color: '#e53935', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
   ma5Series.setData(data.filter(d => d.ma5 !== null).map(d => ({ time: d.time, value: d.ma5 })));
 
+  // MA25
   const ma25Series = priceChart.addLineSeries({ color: '#fb8c00', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false });
   ma25Series.setData(data.filter(d => d.ma25 !== null).map(d => ({ time: d.time, value: d.ma25 })));
 
+  // MA75
   const ma75Series = priceChart.addLineSeries({ color: '#1565c0', lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
   ma75Series.setData(data.filter(d => d.ma75 !== null).map(d => ({ time: d.time, value: d.ma75 })));
 
   priceChart.timeScale().fitContent();
 
+  // ── 出来高チャート ──
   const volChart = LightweightCharts.createChart(volEl, {
     ...chartOpts,
     height: 80,
@@ -1355,6 +1368,7 @@ function renderChart(chartId, data) {
   })));
   volChart.timeScale().fitContent();
 
+  // チャートをリサイズに追従
   const ro = new ResizeObserver(() => {
     const w = priceEl.offsetWidth;
     if (w > 0) {
@@ -1364,6 +1378,7 @@ function renderChart(chartId, data) {
   });
   ro.observe(priceEl);
 
+  // チャートを同期
   priceChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
     if (range) volChart.timeScale().setVisibleLogicalRange(range);
   });
@@ -1371,6 +1386,10 @@ function renderChart(chartId, data) {
     if (range) priceChart.timeScale().setVisibleLogicalRange(range);
   });
 }
+
+// ═══════════════════════════════════════════════════════════════
+// 手法ドロワー
+// ═══════════════════════════════════════════════════════════════
 
 function buildMethodList() {
   const container = document.getElementById('methodList');
@@ -1414,6 +1433,10 @@ function buildMethodList() {
   });
 }
 
+// ═══════════════════════════════════════════════════════════════
+// 銘柄管理ドロワー
+// ═══════════════════════════════════════════════════════════════
+
 function buildStockList() {
   const wrap = document.getElementById('stockListWrap');
   wrap.innerHTML = '';
@@ -1452,6 +1475,8 @@ async function addStock() {
     alert('銘柄は最大100件まで登録できます');
     return;
   }
+
+  // Yahoo Finance から銘柄名取得を試みる（CORS回避のため省略）
   state.stocks.push({ code, name: '' });
   saveSettings();
   buildStockList();
@@ -1465,6 +1490,10 @@ function removeStock(idx) {
   buildStockList();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// ドロワー開閉
+// ═══════════════════════════════════════════════════════════════
+
 function openDrawer(type) {
   document.getElementById(`${type}Overlay`).classList.add('open');
   document.getElementById(`${type}Drawer`).classList.add('open');
@@ -1476,6 +1505,10 @@ function closeDrawer(type) {
   document.getElementById(`${type}Drawer`).classList.remove('open');
   document.body.style.overflow = '';
 }
+
+// ═══════════════════════════════════════════════════════════════
+// 起動
+// ═══════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════
 // 手動分析実行
@@ -1559,6 +1592,7 @@ function hideRunBar() {
 }
 
 async function pollUntilDone(token) {
+  // 1分待ってからポーリング開始
   await sleep(60000);
 
   for (let i = 0; i < 20; i++) {
@@ -1594,6 +1628,7 @@ async function pollUntilDone(token) {
     await sleep(30000);
   }
 
+  // タイムアウト（10分超）
   hideRunBar();
   const btn = document.getElementById('runBtn');
   btn.disabled = false;
@@ -1603,6 +1638,7 @@ async function pollUntilDone(token) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// PAT削除ボタン（銘柄管理ドロワーのフッターに追加）
 function clearPat() {
   localStorage.removeItem('gh_pat');
   alert('PATを削除しました');
