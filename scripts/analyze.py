@@ -1339,7 +1339,8 @@ def main() -> None:
 
     print(f"\n分析完了: {len(matched)}/{len(results)} 銀柄一致")
 
-    if matched:
+    send_email_flag = os.environ.get('SEND_EMAIL', 'true').lower() == 'true'
+    if matched and send_email_flag:
         send_email(matched, now.strftime('%Y/%m/%d'))
 
 
