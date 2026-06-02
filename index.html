@@ -1372,7 +1372,9 @@ function renderChart(chartId, dailyData, weeklyData) {
   const ma75Series = priceChart.addLineSeries({ color: '#F48FB1', lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
   ma75Series.setData(data.filter(d => d.ma75 !== null).map(d => ({ time: d.time, value: d.ma75 })));
 
-  priceChart.timeScale().fitContent();
+  const _initBars = 65;
+  const _initRange = { from: Math.max(0, data.length - _initBars), to: data.length + 2 };
+  priceChart.timeScale().setVisibleLogicalRange(_initRange);
 
   // ── 出来高チャート ──
   const volChart = LightweightCharts.createChart(volEl, {
@@ -1392,7 +1394,7 @@ function renderChart(chartId, dailyData, weeklyData) {
     value: d.volume,
     color: d.close >= d.open ? 'rgba(198,40,40,.6)' : 'rgba(144,196,249,.7)',
   })));
-  volChart.timeScale().fitContent();
+  volChart.timeScale().setVisibleLogicalRange(_initRange);
 
   // リサイズ追従
   const ro = new ResizeObserver(() => {
@@ -1442,8 +1444,10 @@ function toggleWeekly(chartId) {
     time: d.time, value: d.volume,
     color: d.close >= d.open ? 'rgba(198,40,40,.6)' : 'rgba(144,196,249,.7)',
   })));
-  co.priceChart.timeScale().fitContent();
-  co.volChart.timeScale().fitContent();
+  const _toggleBars = co.isWeekly ? 13 : 65;
+  const _toggleRange = { from: Math.max(0, data.length - _toggleBars), to: data.length + 2 };
+  co.priceChart.timeScale().setVisibleLogicalRange(_toggleRange);
+  co.volChart.timeScale().setVisibleLogicalRange(_toggleRange);
 
   // パターンオーバーレイをクリア
   (co.patternLines || []).forEach(s => { try { co.priceChart.removeSeries(s); } catch(e){} });
