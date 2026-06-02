@@ -1216,7 +1216,7 @@ def analyze_stock(code: str, name: str = '') -> dict | None:
     change = (curr['close'] - prev['close']) / prev['close'] * 100 if prev['close'] > 0 else 0.0
 
     chart = []
-    for dt, row in df.tail(90).iterrows():
+    for dt, row in df.tail(252).iterrows():
         chart.append({
             'time':   dt.strftime('%Y-%m-%d'),
             'open':   round(float(row['open']),  2),
@@ -1229,15 +1229,36 @@ def analyze_stock(code: str, name: str = '') -> dict | None:
             'ma75':   round(float(row['ma75']), 2) if not pd.isna(row['ma75']) else None,
         })
 
+    weekly_chart = []
+    wdf_raw = df.attrs.get('weekly_df', None)
+    if wdf_raw is not None and len(wdf_raw) > 0:
+        wdf_c = wdf_raw.copy()
+        wdf_c['wma5']  = wdf_c['close'].rolling(5).mean()
+        wdf_c['wma25'] = wdf_c['close'].rolling(13).mean()
+        wdf_c['wma75'] = wdf_c['close'].rolling(26).mean()
+        for dt, row in wdf_c.tail(104).iterrows():
+            weekly_chart.append({
+                'time':   dt.strftime('%Y-%m-%d'),
+                'open':   round(float(row['open']),  2),
+                'high':   round(float(row['high']),  2),
+                'low':    round(float(row['low']),   2),
+                'close':  round(float(row['close']), 2),
+                'volume': int(row['volume']),
+                'ma5':    round(float(row['wma5']),  2) if not pd.isna(row['wma5'])  else None,
+                'ma25':   round(float(row['wma25']), 2) if not pd.isna(row['wma25']) else None,
+                'ma75':   round(float(row['wma75']), 2) if not pd.isna(row['wma75']) else None,
+            })
+
     return {
-        'code':      code,
-        'name':      name,
-        'close':     round(float(curr['close']), 2),
-        'change':    round(float(change), 2),
-        'volume':    int(curr['volume']),
-        'matches':   matches,
-        'supporting': supporting,
-        'chart':     chart,
+        'code':         code,
+        'name':         name,
+        'close':        round(float(curr['close']), 2),
+        'change':       round(float(change), 2),
+        'volume':       int(curr['volume']),
+        'matches':      matches,
+        'supporting':   supporting,
+        'chart':        chart,
+        'weekly_chart': weekly_chart,
     }
 
 
