@@ -31,6 +31,7 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           TO_EMAIL:  ${{ secrets.TO_EMAIL }}
+          SEND_EMAIL: ${{ github.event_name == 'schedule' && 'true' || 'false' }}
         run: python scripts/analyze.py
 
       - name: 結果をコミット・プッシュ
