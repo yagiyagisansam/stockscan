@@ -194,37 +194,35 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>パターン検証レポート</title>
-<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Hiragino Sans','Meiryo',sans-serif;background:#0d0d1a;color:#e0e0e0;font-size:13px}
-header{background:#12122a;padding:14px 20px;border-bottom:1px solid #2a2a4a;position:sticky;top:0;z-index:100}
-header h1{font-size:16px;color:#ffd700;display:inline}
-header span{color:#888;margin-left:12px;font-size:12px}
-.tab-bar{display:flex;flex-wrap:wrap;gap:4px;padding:10px 20px;background:#12122a;border-bottom:1px solid #2a2a4a;position:sticky;top:45px;z-index:99}
-.tab-btn{padding:4px 10px;border:1px solid #3a3a5a;border-radius:3px;background:#1a1a30;color:#aaa;cursor:pointer;font-size:11px}
+header{background:#12122a;padding:12px 16px;border-bottom:1px solid #2a2a4a;position:sticky;top:0;z-index:100}
+header h1{font-size:15px;color:#ffd700}
+header p{font-size:11px;color:#666;margin-top:2px}
+.tab-bar{display:flex;flex-wrap:wrap;gap:4px;padding:8px 16px;background:#12122a;border-bottom:1px solid #2a2a4a;position:sticky;top:52px;z-index:99}
+.tab-btn{padding:5px 12px;border:1px solid #3a3a5a;border-radius:4px;background:#1a1a30;color:#aaa;cursor:pointer;font-size:11px;touch-action:manipulation}
 .tab-btn.active{background:#2a4a7a;color:#fff;border-color:#4a7aaa}
-.tab-btn:hover:not(.active){background:#222240}
-.group{display:none;padding:16px 20px;gap:24px;flex-direction:column}
+.group{display:none;padding:12px 16px;gap:20px;flex-direction:column}
 .group.active{display:flex}
-.pattern-block{border:1px solid #2a2a4a;border-radius:6px;padding:14px;background:#0f0f20}
-.pattern-header{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
-.pattern-num{font-size:11px;color:#666;width:24px}
+.pattern-block{border:1px solid #2a2a4a;border-radius:6px;padding:12px;background:#0f0f20}
+.pattern-header{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.pattern-num{font-size:11px;color:#555;min-width:22px}
 .pattern-name{font-size:14px;color:#ffd700;font-weight:bold}
-.pattern-key{font-size:10px;color:#555;font-family:monospace}
-.no-data{color:#555;font-size:12px;padding:20px;text-align:center}
-.examples-row{display:flex;gap:12px;flex-wrap:wrap}
-.example{flex:1;min-width:260px}
-.example-label{font-size:11px;color:#888;margin-bottom:4px;padding-left:2px}
+.pattern-key{font-size:10px;color:#444;font-family:monospace}
+.no-data{color:#444;font-size:12px;padding:16px 0;text-align:center}
+.examples-row{display:flex;gap:10px;flex-wrap:wrap}
+.example{flex:1;min-width:260px;max-width:420px}
+.example-label{font-size:11px;color:#777;margin-bottom:3px}
 .example-label b{color:#bbb}
-.chart-box{height:200px;border-radius:3px;overflow:hidden;background:#161626}
-.vol-box{height:50px;border-radius:3px;overflow:hidden;background:#161626;margin-top:2px}
+canvas{display:block;border-radius:3px}
+.gap2{margin-top:2px}
 </style>
 </head>
 <body>
 <header>
   <h1>📊 パターン検証レポート</h1>
-  <span>生成日時: __GENERATED__</span>
+  <p>生成日時: __GENERATED__ &nbsp;|&nbsp; 金色▲ = トリガー日</p>
 </header>
 <div class="tab-bar" id="tabBar"></div>
 <div id="content"></div>
@@ -232,143 +230,217 @@ header span{color:#888;margin-left:12px;font-size:12px}
 <script>
 const DATA   = __DATA__;
 const GROUPS = __GROUPS__;
+const DPR    = Math.min(window.devicePixelRatio || 1, 2);
+const CHART_H = 200;
+const VOL_H   = 44;
 
-let initializedGroups = {};
+// ── Canvas ローソク足描画 ──────────────────────────────────────
+function drawCandle(canvas, ohlcv, triggerIdx) {
+  const W  = canvas.width  / DPR;
+  const H  = canvas.height / DPR;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
 
+  const PL=54, PR=6, PT=6, PB=22;
+  const CW = W-PL-PR, CH = H-PT-PB;
+  const n  = ohlcv.length;
+
+  let hi = -Infinity, lo = Infinity;
+  ohlcv.forEach(d => { hi = Math.max(hi,d.high); lo = Math.min(lo,d.low); });
+  const mg  = (hi - lo) * 0.06 || hi * 0.01 || 1;
+  hi += mg; lo -= mg;
+  const pr  = hi - lo;
+
+  const bW  = CW / n;
+  const cW  = Math.max(1, bW * 0.65);
+  const toY = p => PT + CH * (1 - (p - lo) / pr);
+  const toX = i => PL + (i + 0.5) * bW;
+
+  // bg
+  ctx.fillStyle = '#0d0d1a';
+  ctx.fillRect(0, 0, W, H);
+
+  // grid
+  ctx.strokeStyle = '#1c1c2e';
+  ctx.lineWidth = 0.5;
+  for (let i=0;i<=4;i++){
+    const y = PT + CH*i/4;
+    ctx.beginPath(); ctx.moveTo(PL,y); ctx.lineTo(W-PR,y); ctx.stroke();
+  }
+
+  // trigger bg band
+  if (triggerIdx >= 0 && triggerIdx < n) {
+    const x = toX(triggerIdx);
+    ctx.fillStyle = '#ffd70015';
+    ctx.fillRect(x - bW*0.5, PT, bW, CH);
+  }
+
+  // candles
+  ohlcv.forEach((d,i) => {
+    const x    = toX(i);
+    const isTr = i === triggerIdx;
+    const isUp = d.close >= d.open;
+    const col  = isTr ? '#ffd700' : (isUp ? '#26a69a' : '#ef5350');
+    ctx.strokeStyle = col;
+    ctx.fillStyle   = col;
+    ctx.lineWidth   = 1;
+    // wick
+    ctx.beginPath();
+    ctx.moveTo(x, toY(d.high));
+    ctx.lineTo(x, toY(d.low));
+    ctx.stroke();
+    // body
+    const top = Math.min(toY(d.open), toY(d.close));
+    const bh  = Math.max(1, Math.abs(toY(d.open) - toY(d.close)));
+    ctx.fillRect(x - cW/2, top, cW, bh);
+  });
+
+  // trigger marker ▲
+  if (triggerIdx >= 0 && triggerIdx < n) {
+    const x  = toX(triggerIdx);
+    const my = Math.min(toY(ohlcv[triggerIdx].low) + 14, H - PB + 10);
+    ctx.fillStyle   = '#ffd700';
+    ctx.font        = 'bold 11px sans-serif';
+    ctx.textAlign   = 'center';
+    ctx.textBaseline= 'middle';
+    ctx.fillText('▲', x, my);
+  }
+
+  // Y labels
+  ctx.fillStyle    = '#555';
+  ctx.font         = '9px monospace';
+  ctx.textAlign    = 'right';
+  ctx.textBaseline = 'middle';
+  for (let i=0;i<=4;i++){
+    const p = hi - pr*i/4;
+    const y = PT + CH*i/4;
+    const lbl = p >= 10000 ? Math.round(p).toLocaleString()
+              : p >= 1000  ? Math.round(p).toString()
+              : p.toFixed(1);
+    ctx.fillText(lbl, PL-3, y);
+  }
+
+  // X labels (first / trigger / last)
+  ctx.fillStyle    = '#555';
+  ctx.font         = '9px sans-serif';
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'alphabetic';
+  const seen = new Set();
+  [0, triggerIdx, n-1].forEach(i => {
+    if (i<0||i>=n||seen.has(i)) return;
+    seen.add(i);
+    const x = toX(i);
+    if (x < PL+12 || x > W-PR-12) return;
+    ctx.fillText(ohlcv[i].time.slice(5), x, H-4);
+  });
+}
+
+function drawVolume(canvas, ohlcv, triggerIdx) {
+  const W   = canvas.width  / DPR;
+  const H   = canvas.height / DPR;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
+
+  ctx.fillStyle = '#0d0d1a';
+  ctx.fillRect(0, 0, W, H);
+
+  const PL=54, PR=6, PT=2, PB=2;
+  const CW = W-PL-PR, CH = H-PT-PB;
+  const n  = ohlcv.length;
+  const bW = CW / n;
+  const maxV = Math.max(...ohlcv.map(d => d.vol)) || 1;
+
+  ohlcv.forEach((d,i) => {
+    const x   = PL + (i+0.175)*bW;
+    const w   = bW * 0.65;
+    const h   = (d.vol / maxV) * CH;
+    const isTr= i === triggerIdx;
+    const isUp= d.close >= d.open;
+    ctx.fillStyle = isTr ? '#ffd70099' : (isUp ? '#26a69a55' : '#ef535055');
+    ctx.fillRect(x, PT+CH-h, w, h);
+  });
+}
+
+// ── DOM 構築・タブ ────────────────────────────────────────────
 function buildTabs() {
   const bar = document.getElementById('tabBar');
+  const total = GROUPS.reduce((s,g) => s+g.length, 0);
+  let n = 0;
   GROUPS.forEach((g, gi) => {
+    const s = n+1, e = Math.min(n+g.length, total);
     const btn = document.createElement('button');
-    btn.className = 'tab-btn' + (gi === 0 ? ' active' : '');
-    btn.textContent = `${gi*5+1}〜${Math.min(gi*5+5, GROUPS.flat().length)}`;
+    btn.className = 'tab-btn' + (gi===0 ? ' active' : '');
+    btn.textContent = `${s}〜${e}`;
     btn.onclick = () => showGroup(gi);
     bar.appendChild(btn);
+    n += g.length;
   });
 }
 
 function buildContent() {
-  const container = document.getElementById('content');
+  const cont = document.getElementById('content');
+  let globalIdx = 0;
   GROUPS.forEach((keys, gi) => {
     const div = document.createElement('div');
-    div.className = 'group' + (gi === 0 ? ' active' : '');
-    div.id = 'group-' + gi;
-    div.innerHTML = keys.map(([key, label], li) => buildPatternHTML(gi*5+li, key, label)).join('');
-    container.appendChild(div);
+    div.className = 'group' + (gi===0 ? ' active' : '');
+    div.id = 'group-'+gi;
+    div.innerHTML = keys.map(([key, label]) => {
+      const idx = globalIdx++;
+      const exs = (DATA[key]||[]).slice(0,3);
+      const exHtml = exs.length === 0
+        ? '<div class="no-data">ヒット事例なし（条件が稀すぎる可能性）</div>'
+        : exs.map((ex,i) => `
+          <div class="example">
+            <div class="example-label"><b>${ex.code}</b> &nbsp;${ex.date}</div>
+            <canvas id="cc-${key}-${i}" style="width:100%;height:${CHART_H}px"></canvas>
+            <canvas id="cv-${key}-${i}" class="gap2" style="width:100%;height:${VOL_H}px"></canvas>
+          </div>`).join('');
+      return `<div class="pattern-block">
+        <div class="pattern-header">
+          <span class="pattern-num">${idx+1}</span>
+          <span class="pattern-name">${label}</span>
+          <span class="pattern-key">${key}</span>
+        </div>
+        <div class="examples-row">${exHtml}</div>
+      </div>`;
+    }).join('');
+    cont.appendChild(div);
   });
 }
 
-function buildPatternHTML(idx, key, label) {
-  const examples = (DATA[key] || []).slice(0, 3);
-  const exHtml = examples.length === 0
-    ? `<div class="no-data">ヒット事例なし</div>`
-    : examples.map((ex, i) => `
-      <div class="example">
-        <div class="example-label"><b>${ex.code}</b> &nbsp;${ex.date}</div>
-        <div class="chart-box" id="c-${key}-${i}"></div>
-        <div class="vol-box"   id="v-${key}-${i}"></div>
-      </div>`).join('');
-  return `
-    <div class="pattern-block">
-      <div class="pattern-header">
-        <span class="pattern-num">${idx+1}</span>
-        <span class="pattern-name">${label}</span>
-        <span class="pattern-key">${key}</span>
-      </div>
-      <div class="examples-row">${exHtml}</div>
-    </div>`;
-}
-
+const drawn = {};
 function showGroup(gi) {
   document.querySelectorAll('.group').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('group-' + gi).classList.add('active');
+  document.getElementById('group-'+gi).classList.add('active');
   document.querySelectorAll('.tab-btn')[gi].classList.add('active');
-  if (!initializedGroups[gi]) {
-    initCharts(gi);
-    initializedGroups[gi] = true;
-  }
+  if (!drawn[gi]) { drawn[gi]=true; requestAnimationFrame(() => renderGroup(gi)); }
 }
 
-function initCharts(gi) {
+function renderGroup(gi) {
   GROUPS[gi].forEach(([key]) => {
-    const examples = (DATA[key] || []).slice(0, 3);
-    examples.forEach((ex, i) => {
-      const cEl = document.getElementById(`c-${key}-${i}`);
-      const vEl = document.getElementById(`v-${key}-${i}`);
-      if (!cEl || !vEl) return;
-
-      const chart = LightweightCharts.createChart(cEl, {
-        width: cEl.clientWidth || 280,
-        height: 200,
-        layout: { background: {type:'solid',color:'#161626'}, textColor:'#ccc' },
-        grid:   { vertLines:{color:'#1e1e32'}, horzLines:{color:'#1e1e32'} },
-        crosshair:  { mode: LightweightCharts.CrosshairMode.Normal },
-        timeScale:  { timeVisible:true, secondsVisible:false, borderColor:'#2a2a4a' },
-        rightPriceScale: { borderColor:'#2a2a4a' },
-        handleScroll: true,
-        handleScale: true,
-      });
-
-      const cs = chart.addCandlestickSeries({
-        upColor:'#26a69a', downColor:'#ef5350',
-        borderVisible:false,
-        wickUpColor:'#26a69a', wickDownColor:'#ef5350',
-      });
-      const candles = ex.ohlcv.map(d => ({time:d.time,open:d.open,high:d.high,low:d.low,close:d.close}));
-      cs.setData(candles);
-
-      const triggerTime = ex.ohlcv[ex.trigger_idx].time;
-      cs.setMarkers([{
-        time: triggerTime,
-        position: 'belowBar',
-        color: '#ffd700',
-        shape: 'arrowUp',
-        text: '▲',
-        size: 1,
-      }]);
-
-      // volume chart
-      const vchart = LightweightCharts.createChart(vEl, {
-        width: vEl.clientWidth || 280,
-        height: 50,
-        layout: { background:{type:'solid',color:'#161626'}, textColor:'#ccc' },
-        grid:   { vertLines:{color:'#1e1e32'}, horzLines:{color:'#1e1e32'} },
-        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        timeScale:  { visible:false },
-        rightPriceScale: { visible:false },
-        leftPriceScale:  { visible:false },
-        handleScroll: true,
-        handleScale:  true,
-      });
-      const vs = vchart.addHistogramSeries({ priceScaleId:'' });
-      vchart.priceScale('').applyOptions({ scaleMargins:{top:0.05, bottom:0} });
-      vs.setData(ex.ohlcv.map(d => ({
-        time:  d.time,
-        value: d.vol,
-        color: d.close >= d.open ? '#26a69a66' : '#ef535066',
-      })));
-
-      // sync timescales
-      chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
-        if (range) vchart.timeScale().setVisibleLogicalRange(range);
-      });
-      vchart.timeScale().subscribeVisibleLogicalRangeChange(range => {
-        if (range) chart.timeScale().setVisibleLogicalRange(range);
-      });
+    (DATA[key]||[]).slice(0,3).forEach((ex,i) => {
+      const cc = document.getElementById(`cc-${key}-${i}`);
+      const cv = document.getElementById(`cv-${key}-${i}`);
+      if (!cc || !cv) return;
+      const W = cc.parentElement.clientWidth || 300;
+      cc.width  = W * DPR; cc.height = CHART_H * DPR;
+      cv.width  = W * DPR; cv.height = VOL_H   * DPR;
+      drawCandle(cc,  ex.ohlcv, ex.trigger_idx);
+      drawVolume(cv,  ex.ohlcv, ex.trigger_idx);
     });
   });
 }
 
 buildTabs();
 buildContent();
-// 初期グループを描画
-initializedGroups[0] = true;
-initCharts(0);
+drawn[0] = true;
+requestAnimationFrame(() => renderGroup(0));
 
-// ウィンドウリサイズ時にチャート幅を更新
 window.addEventListener('resize', () => {
-  document.querySelectorAll('.chart-box,.vol-box').forEach(el => {
-    if (el._lwchart) el._lwchart.applyOptions({width: el.clientWidth});
+  Object.keys(drawn).forEach(gi => {
+    if (document.getElementById('group-'+gi).classList.contains('active'))
+      renderGroup(parseInt(gi));
   });
 });
 </script>
