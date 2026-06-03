@@ -454,7 +454,8 @@ const CATEGORIES = [
       { key: 'price_above_all_ma',  label: '株価が全MA上' },
       { key: 'ma25_touch_rebound',  label: '25日線タッチ反発（C-08）' },
       { key: 'weinstein_stage2',    label: 'ワインスタインS2（C-10）' },
-      { key: 'ppp',                 label: 'パンパカパン+押し目（PPP）' },
+      { key: 'ppp',                 label: 'パンパカパン（PPP）' },
+      { key: 'ppp_oshine',          label: 'パンパカパン押し目（PPP）' },
     ],
   },
   {
@@ -899,7 +900,17 @@ const PATTERN_INFO = {
       <circle cx="68" cy="12" r="4" fill="#1b5e20"/>
       <text x="2" y="11" font-size="7" fill="#263238">PPP!</text>
     </svg>`,
-    desc: '①PPP初達成：前日非PO→当日PO成立（株価>5MA>25MA>75MA、全MA上向き）②押し目反転：PPP圏で5MAが一時下向きも25MAを割らずに反転上昇。相場師朗のパンパカパン系シグナル。',
+    desc: '前日は非パーフェクトオーダー→当日初めてPO成立（株価>5MA>25MA>75MA、全MA上向き）。相場師朗のパンパカパン初達成シグナル。',
+  },
+  ppp_oshine: {
+    svg: `<svg width="72" height="60" viewBox="0 0 72 60" fill="none">
+      <path d="M4 52 Q36 42 68 14" stroke="#e53935" stroke-width="1.5" fill="none"/>
+      <path d="M4 56 Q36 48 68 24" stroke="#fb8c00" stroke-width="1.5" fill="none"/>
+      <path d="M4 58 Q36 54 68 36" stroke="#1565c0" stroke-width="1.5" fill="none"/>
+      <path d="M28 36 Q34 44 40 36" stroke="#c62828" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/>
+      <circle cx="68" cy="12" r="4" fill="#1b5e20"/>
+    </svg>`,
+    desc: 'PPP（パーフェクトオーダー）維持中に5MAが一時的に下向きになるも25MAを割ることなく反転上昇。押し目買いシグナル。',
   },
   // ── D群 ──
   vol_surge_200: {
@@ -1612,11 +1623,25 @@ function computePatternOverlay(patternKey, data) {
     case 'price_above_all_ma':
     case 'canslim':
     case 'ppp': {
-      addMark(n-1, '↑', '#FF6F00');
+      addMark(n-1, 'PPP', '#E91E63');
       const last = data[n-1];
       if (last.ma5  != null) addHLine(last.ma5,  '5MA',  '#4CAF50', 0);
       if (last.ma25 != null) addHLine(last.ma25, '25MA', '#A5D6A7', 0);
       if (last.ma75 != null) addHLine(last.ma75, '75MA', '#F48FB1', 0);
+      break;
+    }
+    case 'ppp_oshine': {
+      // 5MAが押し目を形成した区間をサークルで表示
+      for (let i = Math.max(0, n-22); i < n-1; i++) {
+        const d = data[i];
+        if (d.ma5 != null && i > 0 && data[i-1].ma5 != null && d.ma5 < data[i-1].ma5)
+          addMark(i, '', '#FF9800', 'aboveBar', 'circle');
+      }
+      addMark(n-1, '押し目↑', '#E91E63');
+      const lastO = data[n-1];
+      if (lastO.ma5  != null) addHLine(lastO.ma5,  '5MA',  '#4CAF50', 0);
+      if (lastO.ma25 != null) addHLine(lastO.ma25, '25MA（割らず）', '#A5D6A7', 0);
+      if (lastO.ma75 != null) addHLine(lastO.ma75, '75MA', '#F48FB1', 0);
       break;
     }
     case 'gc_25_75':
@@ -1915,14 +1940,30 @@ function buildStockList() {
 }
 
 async function fetchStockName(code) {
+  // Yahoo Finance検索APIで日本語名を優先取得
   try {
-    const res = await fetch(
+    const r = await fetch(
+      `https://query2.finance.yahoo.com/v1/finance/search?q=${code}.T&lang=ja&region=JP&quotesCount=1`,
+      { signal: AbortSignal.timeout(6000) }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      const q = d?.quotes?.[0];
+      if (q) {
+        const name = q.longname || q.shortname || '';
+        if (name) return name;
+      }
+    }
+  } catch(e) {}
+  // フォールバック: chartエンドポイント
+  try {
+    const r = await fetch(
       `https://query2.finance.yahoo.com/v8/finance/chart/${code}.T?interval=1d&range=1d`,
       { signal: AbortSignal.timeout(5000) }
     );
-    if (!res.ok) return '';
-    const data = await res.json();
-    const meta = data?.chart?.result?.[0]?.meta;
+    if (!r.ok) return '';
+    const d = await r.json();
+    const meta = d?.chart?.result?.[0]?.meta;
     return meta?.longName || meta?.shortName || '';
   } catch(e) { return ''; }
 }

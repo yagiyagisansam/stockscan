@@ -237,16 +237,22 @@ def chk_ma25_debut(df: pd.DataFrame) -> bool:
 
 
 def chk_ma75_recovery(df: pd.DataFrame) -> bool:
-    """75日線回復（下から上へ突破）"""
+    """75日線回復（直近5日以内に75MAを下から上に突破）"""
     if len(df) < 78:
         return False
     c = df.iloc[-1]
-    if pd.isna(c['ma75']):
+    if pd.isna(c['ma75']) or c['close'] <= c['ma75']:
         return False
-    closes = df['close'].iloc[-12:-1]
-    ma75s  = df['ma75'].iloc[-12:-1]
-    was_below = (closes < ma75s).any()
-    return bool(was_below and c['close'] > c['ma75'])
+    # 直近5日以内に75MAを下から上に突破した
+    for lookback in range(2, 6):
+        if len(df) < lookback + 1:
+            break
+        prev = df.iloc[-lookback]
+        if pd.isna(prev['ma75']):
+            continue
+        if prev['close'] < prev['ma75']:
+            return True
+    return False
 
 
 def chk_ma_squeeze_breakout(df: pd.DataFrame) -> bool:
@@ -274,13 +280,14 @@ def chk_price_above_all_ma(df: pd.DataFrame) -> bool:
 
 
 def chk_vol_surge_150(df: pd.DataFrame) -> bool:
-    """出来高急増（前日比150%以上 + 上昇）"""
-    if len(df) < 2:
+    """出来高急増（25日平均比150%以上 + 上昇）"""
+    if len(df) < 27:
         return False
     c, p = df.iloc[-1], df.iloc[-2]
-    if p['volume'] <= 0:
+    vol_ma = c['vol_ma25']
+    if pd.isna(vol_ma) or vol_ma <= 0:
         return False
-    return bool(c['volume'] >= p['volume'] * 1.5 and c['close'] > p['close'])
+    return bool(c['volume'] >= vol_ma * 1.5 and c['close'] > p['close'])
 
 
 def chk_new_high_vol(df: pd.DataFrame) -> bool:
@@ -313,6 +320,9 @@ def chk_vcp(df: pd.DataFrame) -> bool:
     c = df.iloc[-1]
     if pd.isna(c['ma25']) or c['close'] < c['ma25']:
         return False
+    # 上昇トレンド中（25MAが上向き）
+    if df['ma25'].iloc[-1] <= df['ma25'].iloc[-15]:
+        return False
 
     def range_pct(start: int, end: int) -> float:
         seg = df.iloc[start:end]
@@ -323,10 +333,18 @@ def chk_vcp(df: pd.DataFrame) -> bool:
     r1 = range_pct(-60, -40)
     r2 = range_pct(-40, -20)
     r3 = range_pct(-20, -5)
-    contracting = r1 > r2 > r3 > 0
-    tight_now   = range_pct(-10, -1) < 0.08
-    vol_dec     = df['volume'].iloc[-6:-1].mean() < df['volume'].iloc[-25:-6].mean()
-    return bool(contracting and tight_now and vol_dec)
+    # 各段階が収縮
+    if not (r1 > r2 > r3 > 0):
+        return False
+    # 第1段階は最低8%の振れ幅
+    if r1 < 0.08:
+        return False
+    # 現在保ち合いが狭い（6%以内）
+    if range_pct(-10, -1) >= 0.06:
+        return False
+    # 出来高減少
+    vol_dec = df['volume'].iloc[-6:-1].mean() < df['volume'].iloc[-25:-6].mean()
+    return bool(vol_dec)
 
 
 def chk_cup_with_handle(df: pd.DataFrame) -> bool:
@@ -337,9 +355,15 @@ def chk_cup_with_handle(df: pd.DataFrame) -> bool:
     handle = df['close'].iloc[-10:]
     c      = df.iloc[-1]
 
-    cup_left_high  = cup.iloc[:5].max()
+    # 上昇トレンド中
+    if pd.isna(c['ma25']) or c['close'] < c['ma25']:
+        return False
+    if pd.isna(c['ma75']) or c['close'] < c['ma75']:
+        return False
+
+    cup_left_high  = cup.iloc[:8].max()
     cup_bottom     = cup.min()
-    cup_right_high = cup.iloc[-5:].max()
+    cup_right_high = cup.iloc[-8:].max()
     if cup_left_high <= 0 or (cup_left_high - cup_bottom) <= 0:
         return False
 
@@ -372,21 +396,29 @@ def chk_tight_area(df: pd.DataFrame) -> bool:
 
 def chk_double_bottom(df: pd.DataFrame) -> bool:
     """ダブルボトム（W底ネックライン突破）"""
-    if len(df) < 45:
+    if len(df) < 50:
         return False
-    prices = df['close'].iloc[-45:]
+    prices = df['close'].iloc[-50:]
     lows: list[tuple[int, float]] = []
-    for i in range(3, len(prices) - 3):
-        if prices.iloc[i] == prices.iloc[i - 3:i + 4].min():
+    for i in range(5, len(prices) - 5):
+        seg = prices.iloc[i - 5:i + 6]
+        if float(prices.iloc[i]) <= float(seg.min()) and float(prices.iloc[i]) < float(prices.iloc[i - 1]) and float(prices.iloc[i]) < float(prices.iloc[i + 1]):
             lows.append((i, float(prices.iloc[i])))
     if len(lows) < 2:
         return False
     (i1, v1), (i2, v2) = lows[-2], lows[-1]
-    similar  = abs(v1 - v2) / v1 < 0.05 if v1 > 0 else False
+    # 2つの安値が少なくとも10日離れている
+    if i2 - i1 < 10:
+        return False
+    # 2つの安値が7%以内で類似
+    if v1 <= 0 or abs(v1 - v2) / v1 >= 0.07:
+        return False
     neckline = float(prices.iloc[i1:i2 + 1].max())
-    between_recovery = neckline > max(v1, v2) * 1.05
-    breaking = df.iloc[-1]['close'] > neckline
-    return bool(similar and between_recovery and breaking)
+    # ネックラインが各安値から8%以上高い
+    if neckline < max(v1, v2) * 1.08:
+        return False
+    c = df.iloc[-1]
+    return bool(c['close'] > neckline * 1.005)
 
 
 def chk_flag(df: pd.DataFrame) -> bool:
@@ -404,26 +436,33 @@ def chk_flag(df: pd.DataFrame) -> bool:
     flag_range = (flag['close'].max() - flag['close'].min()) / flag_avg if flag_avg > 0 else 1
     breakout   = c['close'] > flag['close'].max()
     vol_surge  = c['volume'] > flag['volume'].mean() * 1.3 if flag['volume'].mean() > 0 else False
-    return bool(pole_ret > 0.05 and flag_range < 0.06 and breakout and vol_surge)
+    return bool(pole_ret > 0.08 and flag_range < 0.06 and breakout and vol_surge)
 
 
 def chk_inv_head_shoulders(df: pd.DataFrame) -> bool:
     """逆ヘッド&ショルダー"""
-    if len(df) < 60:
+    if len(df) < 65:
         return False
-    prices = df['close'].iloc[-60:]
+    prices = df['close'].iloc[-65:]
     lows: list[tuple[int, float]] = []
-    for i in range(4, len(prices) - 4):
-        if prices.iloc[i] == prices.iloc[i - 4:i + 5].min():
+    for i in range(5, len(prices) - 5):
+        if prices.iloc[i] == prices.iloc[i - 5:i + 6].min():
             lows.append((i, float(prices.iloc[i])))
     if len(lows) < 3:
         return False
     ls, hd, rs = lows[-3], lows[-2], lows[-1]
-    head_lowest   = hd[1] < ls[1] and hd[1] < rs[1]
-    shoulders_sim = abs(ls[1] - rs[1]) / ls[1] < 0.06 if ls[1] > 0 else False
-    neckline      = float(prices.iloc[ls[0]:rs[0] + 1].max())
-    breaking      = df.iloc[-1]['close'] > neckline
-    return bool(head_lowest and shoulders_sim and breaking)
+    # ヘッドが両肩より5%以上深い
+    if not (hd[1] < ls[1] * 0.95 and hd[1] < rs[1] * 0.95):
+        return False
+    # 両肩が6%以内で類似
+    if ls[1] <= 0 or abs(ls[1] - rs[1]) / ls[1] >= 0.06:
+        return False
+    # 左肩と右肩が少なくとも15日離れている
+    if rs[0] - ls[0] < 15:
+        return False
+    neckline = float(prices.iloc[ls[0]:rs[0] + 1].max())
+    c = df.iloc[-1]
+    return bool(c['close'] > neckline * 1.005)
 
 
 def chk_52week_high(df: pd.DataFrame) -> bool:
@@ -538,29 +577,36 @@ def chk_island_reversal(df: pd.DataFrame) -> bool:
 
 
 def chk_triple_bottom(df: pd.DataFrame) -> bool:
-    """B-08: 三点底（3安値±3%以内+ネックライン突破+出来高）"""
-    if len(df) < 45:
+    """B-08: 三点底（3安値±5%以内+各安値8日以上離れ+ネックライン突破+出来高）"""
+    if len(df) < 60:
         return False
-    prices = df['close'].iloc[-45:]
+    prices = df['close'].iloc[-60:]
     lows: list[tuple[int, float]] = []
-    for i in range(3, len(prices) - 3):
-        if prices.iloc[i] == prices.iloc[i - 3:i + 4].min():
+    for i in range(5, len(prices) - 5):
+        seg = prices.iloc[i - 5:i + 6]
+        if float(prices.iloc[i]) <= float(seg.min()) and float(prices.iloc[i]) < float(prices.iloc[i - 1]) and float(prices.iloc[i]) < float(prices.iloc[i + 1]):
             lows.append((i, float(prices.iloc[i])))
     if len(lows) < 3:
         return False
     (i1, v1), (i2, v2), (i3, v3) = lows[-3], lows[-2], lows[-1]
+    # 各安値が少なくとも8日以上離れている
+    if i2 - i1 < 8 or i3 - i2 < 8:
+        return False
     avg_low = (v1 + v2 + v3) / 3
     if avg_low <= 0:
         return False
-    within_3pct = all(abs(v - avg_low) / avg_low < 0.03 for v in [v1, v2, v3])
-    if not within_3pct:
+    # 3安値が5%以内
+    if any(abs(v - avg_low) / avg_low >= 0.05 for v in [v1, v2, v3]):
         return False
     neckline = float(prices.iloc[i1:i3 + 1].max())
+    # ネックラインが安値から8%以上高い
+    if neckline < avg_low * 1.08:
+        return False
     c = df.iloc[-1]
     vol_ma = c['vol_ma25']
     if pd.isna(vol_ma) or vol_ma <= 0:
         return False
-    return bool(c['close'] > neckline and c['volume'] >= vol_ma * 1.5)
+    return bool(c['close'] > neckline * 1.005 and c['volume'] >= vol_ma * 1.3)
 
 
 def chk_engulfing_vol(df: pd.DataFrame) -> bool:
@@ -815,20 +861,25 @@ def chk_v_recovery(df: pd.DataFrame) -> bool:
 
 
 def chk_inv_triple_bottom(df: pd.DataFrame) -> bool:
-    """F-05+F-08: 逆三山（上昇も3安値+各安値で出来高縮小+ネックライン突破）"""
-    if len(df) < 60:
+    """F-05+F-08: 逆三山（上昇する3安値+各底8日以上離れ+各安値で出来高縮小+ネックライン突破）"""
+    if len(df) < 65:
         return False
-    prices  = df['close'].iloc[-60:]
-    volumes = df['volume'].iloc[-60:]
+    prices  = df['close'].iloc[-65:]
+    volumes = df['volume'].iloc[-65:]
     lows: list[tuple[int, float, float]] = []
-    for i in range(4, len(prices) - 4):
-        if prices.iloc[i] == prices.iloc[i - 4:i + 5].min():
+    for i in range(5, len(prices) - 5):
+        if prices.iloc[i] == prices.iloc[i - 5:i + 6].min():
             lows.append((i, float(prices.iloc[i]), float(volumes.iloc[i])))
     if len(lows) < 3:
         return False
     (i1, v1, vol1), (i2, v2, vol2), (i3, v3, vol3) = lows[-3], lows[-2], lows[-1]
+    # 安値が上昇（v1 < v2 < v3）
     if not (v1 < v2 < v3):
         return False
+    # 各底が少なくとも8日離れている
+    if i2 - i1 < 8 or i3 - i2 < 8:
+        return False
+    # 出来高縮小
     if not (vol1 > vol2 > vol3):
         return False
     neckline = float(prices.iloc[i1:i3 + 1].max())
@@ -836,32 +887,48 @@ def chk_inv_triple_bottom(df: pd.DataFrame) -> bool:
     vol_ma = c['vol_ma25']
     if pd.isna(vol_ma) or vol_ma <= 0:
         return False
-    return bool(c['close'] > neckline and c['volume'] >= vol_ma * 1.5)
+    return bool(c['close'] > neckline * 1.005 and c['volume'] >= vol_ma * 1.3)
 
 
 def chk_saucer_bottom(df: pd.DataFrame) -> bool:
-    """F-06: 円形底（放物線フィット法：90日U字+出来高増加+高値付近回復）"""
+    """F-06: 円形底（U字構造：底が中央20-70日、深さ15%以上、右肩85%回復、後半出来高増）"""
     if len(df) < 90:
         return False
     prices  = df['close'].iloc[-90:].values.astype(float)
     volumes = df['volume'].iloc[-90:].values.astype(float)
-    t = np.arange(len(prices), dtype=float)
-    try:
-        coeffs = np.polyfit(t, prices, 2)
-        a = coeffs[0]
-    except Exception:
+
+    bottom_idx = int(np.argmin(prices))
+    # 底値が期間の20-70%の範囲内
+    if bottom_idx < 18 or bottom_idx > 63:
         return False
-    if a <= 0:
+
+    bottom_price = prices[bottom_idx]
+    left_high    = float(np.max(prices[:bottom_idx]))
+    right_high   = float(np.max(prices[bottom_idx:]))
+
+    if left_high <= 0 or bottom_price <= 0:
         return False
-    vertex_t = -coeffs[1] / (2 * a)
-    if vertex_t < 13 or vertex_t > 76:
+
+    # 深さ15%以上
+    depth = (left_high - bottom_price) / left_high
+    if depth < 0.15:
         return False
+
+    # 右側が左高値の85%以上まで回復
+    if right_high < left_high * 0.85:
+        return False
+
+    # 現在値が右高値の90%以上
+    if prices[-1] < right_high * 0.90:
+        return False
+
+    # 後半出来高が前半より多い
     vol_first  = float(np.mean(volumes[:45]))
     vol_second = float(np.mean(volumes[45:]))
     if vol_first <= 0 or vol_second <= vol_first:
         return False
-    high_90d = float(np.max(prices))
-    return bool(high_90d > 0 and prices[-1] >= high_90d * 0.90)
+
+    return True
 
 
 # ── G群 ──────────────────────────────────────────────────────
@@ -1090,38 +1157,47 @@ def chk_narabiaka(df: pd.DataFrame) -> bool:
 
 
 def chk_ppp(df: pd.DataFrame) -> bool:
-    """パンパカパン+押し目（PPP初達成 OR PPP圏での5MA押し目→25MAを割らず反転）"""
+    """パンパカパン（PPP）初達成（前日非PO→当日PO初転換、全MA上向き）"""
     if len(df) < 80:
         return False
     c = df.iloc[-1]
-
+    p = df.iloc[-2]
     if any(pd.isna([c['ma5'], c['ma25'], c['ma75']])):
         return False
-    # 基本条件：パーフェクトオーダー、25MA・75MAが上向き
+    if not (c['close'] > c['ma5'] > c['ma25'] > c['ma75']):
+        return False
+    if df['ma5'].iloc[-1] <= df['ma5'].iloc[-5]:
+        return False
+    if df['ma25'].iloc[-1] <= df['ma25'].iloc[-5]:
+        return False
+    if df['ma75'].iloc[-1] <= df['ma75'].iloc[-5]:
+        return False
+    if any(pd.isna([p['ma5'], p['ma25'], p['ma75']])):
+        return False
+    prev_po = p['close'] > p['ma5'] > p['ma25'] > p['ma75']
+    return not prev_po
+
+
+def chk_ppp_oshine(df: pd.DataFrame) -> bool:
+    """パンパカパン押し目（PPP圏で5MA一時下向き→25MAを割らず反転上昇）"""
+    if len(df) < 80:
+        return False
+    c = df.iloc[-1]
+    if any(pd.isna([c['ma5'], c['ma25'], c['ma75']])):
+        return False
     if not (c['close'] > c['ma5'] > c['ma25'] > c['ma75']):
         return False
     if df['ma25'].iloc[-1] <= df['ma25'].iloc[-5]:
         return False
     if df['ma75'].iloc[-1] <= df['ma75'].iloc[-5]:
         return False
-
-    p = df.iloc[-2]
-
-    # ── トリガー1：前日非PO→当日PO初転換（5MAも上向き）──
-    if not any(pd.isna([p['ma5'], p['ma25'], p['ma75']])):
-        prev_po = p['close'] > p['ma5'] > p['ma25'] > p['ma75']
-        if not prev_po and df['ma5'].iloc[-1] > df['ma5'].iloc[-5]:
-            return True
-
-    # ── トリガー2：5MA押し目→25MAを割らず反転 ──
-    # 直近21日間で5MAが一時下向きになったが終値がMA25を常に上回っていた
+    # 直近21日間で5MAが一時下向きになったが終値がMA25を割らなかった
     window = df.iloc[-22:-1]
     if len(window) < 5:
         return False
     ma5_arr   = window['ma5'].values
     close_arr = window['close'].values
     ma25_arr  = window['ma25'].values
-
     had_decline = False
     for i in range(1, len(ma5_arr)):
         if pd.isna(ma5_arr[i]) or pd.isna(ma5_arr[i - 1]):
@@ -1129,12 +1205,10 @@ def chk_ppp(df: pd.DataFrame) -> bool:
         if ma5_arr[i] < ma5_arr[i - 1]:
             had_decline = True
         if not pd.isna(ma25_arr[i]) and close_arr[i] < ma25_arr[i]:
-            return False  # MA25を下回った→不成立
-
+            return False
     if not had_decline:
         return False
-
-    # 5MAが直近3日で上向きに転換していること
+    # 5MAが直近3日で上向き転換
     return bool(df['ma5'].iloc[-1] > df['ma5'].iloc[-4])
 
 
@@ -1213,6 +1287,7 @@ CHECKS: list[tuple[str, str, str, bool]] = [
     # ── 追加手法（単体）──────────────────────────────────────
     ('narabiaka',            '上放れ並び赤',                     'chk_narabiaka',             True),
     ('ppp',                  'パンパカパン+押し目（PPP）',         'chk_ppp',                   True),
+    ('ppp_oshine',           'パンパカパン押し目（PPP）',          'chk_ppp_oshine',            True),
 ]
 
 _FUNC_MAP = {key: globals()[fn] for key, _, fn, _ in CHECKS}
