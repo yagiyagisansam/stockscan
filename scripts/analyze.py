@@ -1361,9 +1361,16 @@ def main() -> None:
     results: list[dict] = []
     matched: list[dict] = []
 
+    stocks_updated = False
     for s in stocks:
         code = str(s['code'])
         name = s.get('name', '')
+        if not name:
+            info = get_stock_info(code)
+            name = info.get('name_ja', '') or info.get('name_en', '')
+            if name:
+                s['name'] = name
+                stocks_updated = True
         print(f"→ {code} {name} を分析中...")
         result = analyze_stock(code, name)
         if result:
@@ -1388,6 +1395,10 @@ def main() -> None:
 
     with open(results_path, 'w', encoding='utf-8') as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
+
+    if stocks_updated:
+        with open(stocks_path, 'w', encoding='utf-8') as f:
+            json.dump(stocks, f, ensure_ascii=False, indent=2)
 
     print(f"\n分析完了: {len(matched)}/{len(results)} 銀柄一致")
 

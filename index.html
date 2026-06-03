@@ -154,6 +154,10 @@ body{
   border-radius:6px;padding:4px 10px;
   font-size:12px;
 }
+.no-match-chip--unanalyzed{
+  background:#FFF8E1;color:#F57F17;
+  border:1px dashed #FFB300;
+}
 
 /* ── ドロワー（手法選択・銘柄管理） ── */
 .overlay{
@@ -1110,7 +1114,15 @@ async function loadData() {
       state.stocks = remoteStocks;
       saveSettings();
     }
-    // 名前が空の銘柄を補完（バックグラウンド）
+    // results.jsonの名前でstocksを補完
+    let namesUpdated = false;
+    (state.results.stocks || []).forEach(rs => {
+      if (!rs.name) return;
+      const s = state.stocks.find(s => s.code === rs.code);
+      if (s && !s.name) { s.name = rs.name; namesUpdated = true; }
+    });
+    if (namesUpdated) saveSettings();
+    // 残った名前なし銘柄をYahoo Financeで補完（バックグラウンド）
     backfillMissingNames();
   } catch (e) {
     state.results = { date: '--', total: 0, matched: 0, stocks: [] };
@@ -1163,10 +1175,18 @@ function render() {
     supporting: (s.supporting || []).filter(m => state.enabledMethods.has(m.key)),
   })).filter(s => s.matches.length > 0 || s.supporting.length > 0);
 
-  const unmatched = stocks.filter(s =>
-    !(s.matches    || []).some(m => state.enabledMethods.has(m.key)) &&
-    !(s.supporting || []).some(m => state.enabledMethods.has(m.key))
-  );
+  const resultCodes = new Set(stocks.map(s => s.code));
+  const unanalyzed  = state.stocks
+    .filter(s => !resultCodes.has(s.code))
+    .map(s => ({ code: s.code, name: s.name || '', _unanalyzed: true }));
+
+  const unmatched = [
+    ...stocks.filter(s =>
+      !(s.matches    || []).some(m => state.enabledMethods.has(m.key)) &&
+      !(s.supporting || []).some(m => state.enabledMethods.has(m.key))
+    ),
+    ...unanalyzed,
+  ];
 
   // マッチ数バッジ
   const mhdr = document.createElement('div');
@@ -1211,8 +1231,8 @@ function render() {
     list.className = 'no-match-list';
     unmatched.forEach(s => {
       const chip = document.createElement('span');
-      chip.className = 'no-match-chip';
-      chip.textContent = `${s.code} ${s.name}`;
+      chip.className = s._unanalyzed ? 'no-match-chip no-match-chip--unanalyzed' : 'no-match-chip';
+      chip.textContent = `${s.code}${s.name ? ' ' + s.name : ''}${s._unanalyzed ? ' (未分析)' : ''}`;
       list.appendChild(chip);
     });
     sec.appendChild(list);
@@ -1997,8 +2017,8 @@ async function savePatAndRun() {
   if (state.pendingStocksSync) {
     state.pendingStocksSync = false;
     const ok = await pushStocksToGitHub(token);
-    if (ok) { showRunBar('銘柄リストを更新しました'); }
-    else { showRunBar('銘柄リストの更新に失敗しました（PATの権限を確認してください）'); }
+    if (ok) { showRunBar('✅ 銘柄リストを更新しました'); setTimeout(hideRunBar, 3000); }
+    else { showRunBar('⚠ 銘柄リストの更新に失敗しました（PATの権限を確認してください）'); setTimeout(hideRunBar, 5000); }
   } else {
     triggerAnalysis(token);
   }
@@ -2008,7 +2028,10 @@ async function fetchStocksSha(token) {
   try {
     const res = await fetch(
       `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_STOCKS_PATH}`,
-      { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' } }
+      {
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+        signal: AbortSignal.timeout(10000),
+      }
     );
     if (res.ok) { const d = await res.json(); stocksJsonSha = d.sha; }
   } catch(e) {}
@@ -2017,20 +2040,23 @@ async function fetchStocksSha(token) {
 async function pushStocksToGitHub(token) {
   if (!stocksJsonSha) await fetchStocksSha(token);
   const content = btoa(unescape(encodeURIComponent(JSON.stringify(state.stocks, null, 2))));
-  const res = await fetch(
-    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_STOCKS_PATH}`,
-    {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ message: 'chore: update stocks list from UI', content, sha: stocksJsonSha }),
-    }
-  );
-  if (res.ok) { const d = await res.json(); stocksJsonSha = d.content.sha; return true; }
-  return false;
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_STOCKS_PATH}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: 'chore: update stocks list from UI', content, sha: stocksJsonSha }),
+        signal: AbortSignal.timeout(15000),
+      }
+    );
+    if (res.ok) { const d = await res.json(); stocksJsonSha = d.content.sha; return true; }
+    return false;
+  } catch(e) { return false; }
 }
 
 async function syncStocksOnly() {
@@ -2044,8 +2070,8 @@ async function syncStocksOnly() {
   }
   showRunBar('銘柄リストをGitHubに反映中...');
   const ok = await pushStocksToGitHub(token);
-  if (ok) { showRunBar('銘柄リストを更新しました'); }
-  else { showRunBar('銘柄リストの更新に失敗しました（PATの権限を確認してください）'); }
+  if (ok) { showRunBar('✅ 銘柄リストを更新しました'); setTimeout(hideRunBar, 3000); }
+  else { showRunBar('⚠ 銘柄リストの更新に失敗しました（PATの権限を確認してください）'); setTimeout(hideRunBar, 5000); }
 }
 
 async function triggerAnalysis(token) {
