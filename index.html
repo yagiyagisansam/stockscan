@@ -450,7 +450,7 @@ const CATEGORIES = [
       { key: 'price_above_all_ma',  label: '株価が全MA上' },
       { key: 'ma25_touch_rebound',  label: '25日線タッチ反発（C-08）' },
       { key: 'weinstein_stage2',    label: 'ワインスタインS2（C-10）' },
-      { key: 'ppp',                 label: 'パンパカパン（PPP）' },
+      { key: 'ppp',                 label: 'パンパカパン+押し目（PPP）' },
     ],
   },
   {
@@ -893,9 +893,9 @@ const PATTERN_INFO = {
       <path d="M4 58 Q36 54 68 36" stroke="#1565c0" stroke-width="1.5" fill="none"/>
       <circle cx="30" cy="48" r="4" fill="#c62828"/>
       <circle cx="68" cy="12" r="4" fill="#1b5e20"/>
-      <text x="2" y="11" font-size="7" fill="#263238">初達成!</text>
+      <text x="2" y="11" font-size="7" fill="#263238">PPP!</text>
     </svg>`,
-    desc: '前日は非PO→当日初めてPO成立（株価>5MA>25MA>75MA、全MA上向き）。相場師朗のパンパカパン初達成シグナル。',
+    desc: '①PPP初達成：前日非PO→当日PO成立（株価>5MA>25MA>75MA、全MA上向き）②押し目反転：PPP圏で5MAが一時下向きも25MAを割らずに反転上昇。相場師朗のパンパカパン系シグナル。',
   },
   // ── D群 ──
   vol_surge_200: {
@@ -1110,10 +1110,29 @@ async function loadData() {
       state.stocks = remoteStocks;
       saveSettings();
     }
+    // 名前が空の銘柄を補完（バックグラウンド）
+    backfillMissingNames();
   } catch (e) {
     state.results = { date: '--', total: 0, matched: 0, stocks: [] };
   }
   render();
+}
+
+async function backfillMissingNames() {
+  const nameless = state.stocks.filter(s => !s.name);
+  if (nameless.length === 0) return;
+  let updated = false;
+  for (const stock of nameless) {
+    const name = await fetchStockName(stock.code);
+    if (name) { stock.name = name; updated = true; }
+  }
+  if (!updated) return;
+  saveSettings();
+  buildStockList();
+  const token = localStorage.getItem('gh_pat');
+  if (token) {
+    await pushStocksToGitHub(token).catch(() => {});
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════

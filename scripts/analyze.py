@@ -27,16 +27,19 @@ def get_stock_data(code: str) -> pd.DataFrame | None:
     df = df[['open', 'high', 'low', 'close', 'volume']].copy()
     df = df[df['close'] > 0].copy()
 
-    # ATH (split-adjusted via auto_adjust=True default)
+    # ATH: 今日を除いた全履歴の最高値（split-adjusted via auto_adjust=True default）
     try:
         df_max = ticker.history(period="max")
         if df_max is not None and len(df_max) > 0:
             df_max.columns = [c.lower() for c in df_max.columns]
-            ath = float(df_max['close'].max())
+            df_max.index = pd.to_datetime(df_max.index)
+            today_ts = df.index[-1]
+            df_hist = df_max[df_max.index.normalize() < today_ts.normalize()]
+            ath = float(df_hist['close'].max()) if len(df_hist) > 0 else float(df['close'].iloc[:-1].max())
         else:
-            ath = float(df['close'].max())
+            ath = float(df['close'].iloc[:-1].max())
     except Exception:
-        ath = float(df['close'].max())
+        ath = float(df['close'].iloc[:-1].max())
     df.attrs['ath'] = ath
 
     # Weekly data for K-09
@@ -693,7 +696,7 @@ def chk_obv_new_high(df: pd.DataFrame) -> bool:
 
 
 def chk_pocket_pivot(df: pd.DataFrame) -> bool:
-    """D-07: ポケットピボット（陽線+出来高>直近10日の陰線日出来高最大値+MA25以上）"""
+    """D-07: ポケットピボット（陽線+出来高>直近10日の陰線日出来高最大値+MA25以上+平均出来高×1.3以上）"""
     if len(df) < 30:
         return False
     c = df.iloc[-1]
@@ -706,7 +709,11 @@ def chk_pocket_pivot(df: pd.DataFrame) -> bool:
     if len(down_days) == 0:
         return False
     max_down_vol = down_days['volume'].max()
-    return bool(c['volume'] > max_down_vol)
+    if not c['volume'] > max_down_vol:
+        return False
+    # 出来高が20日平均の1.3倍以上（絶対的な出来高の担保）
+    vol_avg = df['volume'].iloc[-21:-1].mean()
+    return bool(not pd.isna(vol_avg) and vol_avg > 0 and c['volume'] >= vol_avg * 1.3)
 
 
 def chk_vol_acceleration(df: pd.DataFrame) -> bool:
@@ -904,12 +911,12 @@ def chk_ascending_triangle(df: pd.DataFrame) -> bool:
 
 
 def chk_alltime_high(df: pd.DataFrame) -> bool:
-    """G-05: 上場来高値更新（株式分割調整済みATH）"""
+    """G-05: 上場来高値更新（株式分割調整済みATH、前日までの最高値を本日終値が上回る）"""
     ath = df.attrs.get('ath', None)
     if ath is None or ath <= 0:
         return False
     c = df.iloc[-1]
-    return bool(c['close'] >= ath * 0.9995)
+    return bool(c['close'] > ath)
 
 
 def chk_base_breakout(df: pd.DataFrame) -> bool:
@@ -1083,28 +1090,52 @@ def chk_narabiaka(df: pd.DataFrame) -> bool:
 
 
 def chk_ppp(df: pd.DataFrame) -> bool:
-    """パンパカパン(PPP)初達成（前日非PO→当日PO初転換）"""
+    """パンパカパン+押し目（PPP初達成 OR PPP圏での5MA押し目→25MAを割らず反転）"""
     if len(df) < 80:
         return False
     c = df.iloc[-1]
-    p = df.iloc[-2]
 
     if any(pd.isna([c['ma5'], c['ma25'], c['ma75']])):
         return False
-    today_po = c['close'] > c['ma5'] > c['ma25'] > c['ma75']
-    if not today_po:
-        return False
-    if df['ma5'].iloc[-1]  <= df['ma5'].iloc[-5]:
+    # 基本条件：パーフェクトオーダー、25MA・75MAが上向き
+    if not (c['close'] > c['ma5'] > c['ma25'] > c['ma75']):
         return False
     if df['ma25'].iloc[-1] <= df['ma25'].iloc[-5]:
         return False
     if df['ma75'].iloc[-1] <= df['ma75'].iloc[-5]:
         return False
 
-    if any(pd.isna([p['ma5'], p['ma25'], p['ma75']])):
+    p = df.iloc[-2]
+
+    # ── トリガー1：前日非PO→当日PO初転換（5MAも上向き）──
+    if not any(pd.isna([p['ma5'], p['ma25'], p['ma75']])):
+        prev_po = p['close'] > p['ma5'] > p['ma25'] > p['ma75']
+        if not prev_po and df['ma5'].iloc[-1] > df['ma5'].iloc[-5]:
+            return True
+
+    # ── トリガー2：5MA押し目→25MAを割らず反転 ──
+    # 直近21日間で5MAが一時下向きになったが終値がMA25を常に上回っていた
+    window = df.iloc[-22:-1]
+    if len(window) < 5:
         return False
-    prev_po = p['close'] > p['ma5'] > p['ma25'] > p['ma75']
-    return not prev_po
+    ma5_arr   = window['ma5'].values
+    close_arr = window['close'].values
+    ma25_arr  = window['ma25'].values
+
+    had_decline = False
+    for i in range(1, len(ma5_arr)):
+        if pd.isna(ma5_arr[i]) or pd.isna(ma5_arr[i - 1]):
+            continue
+        if ma5_arr[i] < ma5_arr[i - 1]:
+            had_decline = True
+        if not pd.isna(ma25_arr[i]) and close_arr[i] < ma25_arr[i]:
+            return False  # MA25を下回った→不成立
+
+    if not had_decline:
+        return False
+
+    # 5MAが直近3日で上向きに転換していること
+    return bool(df['ma5'].iloc[-1] > df['ma5'].iloc[-4])
 
 
 # ─── 手法定義テーブル ───────────────────────────────────────────────
@@ -1181,7 +1212,7 @@ CHECKS: list[tuple[str, str, str, bool]] = [
 
     # ── 追加手法（単体）──────────────────────────────────────
     ('narabiaka',            '上放れ並び赤',                     'chk_narabiaka',             True),
-    ('ppp',                  'パンパカパン（PPP）',               'chk_ppp',                   True),
+    ('ppp',                  'パンパカパン+押し目（PPP）',         'chk_ppp',                   True),
 ]
 
 _FUNC_MAP = {key: globals()[fn] for key, _, fn, _ in CHECKS}
