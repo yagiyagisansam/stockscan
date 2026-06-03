@@ -160,14 +160,18 @@ def collect_examples(stocks: dict) -> dict:
 
                     ohlcv = []
                     for idx, row in chunk.iterrows():
-                        ohlcv.append({
+                        entry = {
                             'time':  str(idx.date()),
                             'open':  round(float(row['open']),  1),
                             'high':  round(float(row['high']),  1),
                             'low':   round(float(row['low']),   1),
                             'close': round(float(row['close']), 1),
                             'vol':   int(row['volume']),
-                        })
+                        }
+                        for ma in ('ma5', 'ma25', 'ma75'):
+                            if ma in row and not pd.isna(row[ma]):
+                                entry[ma] = round(float(row[ma]), 1)
+                        ohlcv.append(entry)
 
                     examples[key].append({
                         'code':        code,
@@ -293,6 +297,40 @@ function drawCandle(canvas, ohlcv, triggerIdx) {
     const top = Math.min(toY(d.open), toY(d.close));
     const bh  = Math.max(1, Math.abs(toY(d.open) - toY(d.close)));
     ctx.fillRect(x - cW/2, top, cW, bh);
+  });
+
+  // MA lines
+  const maStyles = [
+    { key: 'ma5',  color: '#f9a825', lw: 1.0, label: 'MA5'  },
+    { key: 'ma25', color: '#42a5f5', lw: 1.5, label: 'MA25' },
+    { key: 'ma75', color: '#ef6c00', lw: 1.5, label: 'MA75' },
+  ];
+  maStyles.forEach(({ key, color, lw }) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = lw;
+    ctx.beginPath();
+    let started = false;
+    ohlcv.forEach((d, i) => {
+      if (d[key] == null) { started = false; return; }
+      const x = toX(i), y = toY(d[key]);
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else           ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  });
+
+  // MA legend (top-right)
+  ctx.font = '8px monospace';
+  ctx.textBaseline = 'top';
+  const lastBar = ohlcv[ohlcv.length - 1];
+  let lx = W - PR - 2;
+  maStyles.slice().reverse().forEach(({ key, color, label }) => {
+    if (lastBar[key] == null) return;
+    const txt = `${label}`;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'right';
+    ctx.fillText(txt, lx, PT + 1);
+    lx -= ctx.measureText(txt).width + 10;
   });
 
   // trigger marker ▲
