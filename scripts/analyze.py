@@ -347,7 +347,7 @@ def chk_morning_star(df: pd.DataFrame) -> bool:
     d1_body = abs(d1['close'] - d1['open'])
     if d1_body <= 0 or d1['close'] >= d1['open']:       # ②1日目大陰線
         return False
-    if d1['open'] <= 0 or d1_body / d1['open'] < 0.02:
+    if d1['open'] <= 0 or d1_body / d1['open'] < 0.03: # 始値-終値が3%以上
         return False
     if d2['open'] >= d1['close']:                       # 2日目ギャップダウン
         return False
@@ -359,7 +359,7 @@ def chk_morning_star(df: pd.DataFrame) -> bool:
     d1_mid = (d1['open'] + d1['close']) / 2
     if d3['close'] <= d1_mid:                           # 1日目陰線の半値以上回復
         return False
-    if d2['volume'] <= 0 or d3['volume'] < d2['volume'] * 2.0:  # ④出来高前日2倍
+    if not _vol_surge(df.iloc[-1], 1.5):               # ④3日目出来高25日平均1.5倍
         return False
     return True
 
@@ -374,14 +374,14 @@ def chk_three_white_soldiers(df: pd.DataFrame) -> bool:
             return False
         rng = cd['high'] - cd['low']
         body = cd['close'] - cd['open']
-        if rng <= 0 or body / rng < 0.75:               # ④実体>=レンジ75%
+        if rng <= 0 or body / rng < 0.60:               # ④実体>=レンジ60%（上ひげ短い）
             return False
         if i > 0:
             prev = c3[i - 1]
             if cd['close'] <= prev['close']:            # 連続上昇
                 return False
-            prev_mid = (prev['open'] + prev['close']) / 2
-            if cd['open'] < prev_mid:                   # ②始値が前日実体中央以上
+            # ②始値が前日実体内（窓なし・前日始値以上・前日終値未満）
+            if cd['open'] >= prev['close'] or cd['open'] < prev['open']:
                 return False
     v = [cd['volume'] for cd in c3]
     if not (v[0] < v[1] < v[2]):                        # ③出来高漸増
@@ -396,17 +396,17 @@ def chk_gap_up(df: pd.DataFrame) -> bool:
     if len(df) < 27:
         return False
     p, c = df.iloc[-2], df.iloc[-1]
-    if p['close'] <= 0:
+    if p['close'] <= 0 or p['high'] <= 0:
         return False
-    if (c['open'] - p['close']) / p['close'] < 0.01:    # ②ギャップ1%以上
+    if c['open'] <= p['high']:                           # ②真の窓開け（始値>前日高値）
         return False
     if c['close'] <= c['open']:                         # 陽線
         return False
-    if not _vol_surge(c, 1.5):                          # ③出来高
+    if not _vol_surge(c, 1.5):                          # ③出来高25日平均1.5倍
         return False
-    if not _consolidation_break(df):                    # ①保ち合いブレイク
+    if not _consolidation_break(df):                    # ①保ち合いブレイク後
         return False
-    return _weekly_uptrend(df)                           # ④週足上昇基調
+    return _ma_up(df, 'ma25')                            # ④25MA上向き
 
 
 # 6 パーフェクトオーダー
@@ -423,8 +423,8 @@ def chk_perfect_order(df: pd.DataFrame) -> bool:
     last5 = df.iloc[-5:]
     if (last5['close'] < last5['ma5']).any():           # ②MA5を下抜けしていない
         return False
-    vm = c['vol_ma25']                                  # ③出来高25日平均以上を維持
-    if pd.isna(vm) or vm <= 0 or df['volume'].iloc[-5:].mean() < vm:
+    vm = c['vol_ma25']                                  # ③出来高25日平均以上
+    if pd.isna(vm) or vm <= 0 or c['volume'] < vm * 0.8:
         return False
     return True
 
@@ -440,7 +440,7 @@ def chk_gc_25_75(df: pd.DataFrame) -> bool:
         return False
     if not _ma_flat_or_up(df, 'ma75', 5):               # ①75MA水平or上向き
         return False
-    if p['volume'] <= 0 or c['volume'] < p['volume'] * 1.5:     # ②出来高前日1.5倍
+    if not _vol_surge(c, 1.0):                          # ②出来高25日平均以上
         return False
     if c['close'] <= c['ma75']:                         # ③株価>MA75
         return False
@@ -462,7 +462,7 @@ def chk_ma25_debut(df: pd.DataFrame) -> bool:
         return False
     if df['ma25'].iloc[-1] < df['ma25'].iloc[-3]:       # ③25MA水平〜上向き転換中
         return False
-    if p['volume'] <= 0 or c['volume'] < p['volume'] * 1.2:     # ④出来高前日1.2倍
+    if not _vol_surge(c, 1.0):                          # ④出来高25日平均以上
         return False
     return True
 
@@ -580,7 +580,7 @@ def chk_vol_dry_surge(df: pd.DataFrame) -> bool:
 def chk_vcp(df: pd.DataFrame) -> bool:
     if len(df) < 65:
         return False
-    c, p = df.iloc[-1], df.iloc[-2]
+    c = df.iloc[-1]
     if pd.isna(c['ma25']) or c['close'] < c['ma25']:
         return False
     if df['ma25'].iloc[-1] <= df['ma25'].iloc[-15]:     # 上昇トレンド
@@ -606,7 +606,7 @@ def chk_vcp(df: pd.DataFrame) -> bool:
     v3 = df['volume'].iloc[-25:-10].mean()
     if not (v1 > v2 > v3 > 0):
         return False
-    if p['volume'] <= 0 or c['volume'] < p['volume'] * 1.5:  # ④ブレイク出来高前日1.5倍
+    if not _vol_surge(c, 1.5):                          # ④ブレイク出来高25日平均1.5倍
         return False
     if c['close'] <= float(df['high'].iloc[-6:-1].max()):    # ブレイクアウト
         return False
@@ -653,10 +653,10 @@ def chk_cup_with_handle(df: pd.DataFrame) -> bool:
     handle_vol = float(handle['volume'].mean())
     if ten_week_vol <= 0 or handle_vol > ten_week_vol * 0.70:
         return False
-    c, p = df.iloc[-1], df.iloc[-2]                      # ④日足ブレイク+出来高前日1.5倍
+    c = df.iloc[-1]                                       # ④日足ブレイク+出来高25日平均1.5倍
     if c['close'] <= best:
         return False
-    if p['volume'] <= 0 or c['volume'] < p['volume'] * 1.5:
+    if not _vol_surge(c, 1.5):
         return False
     return True
 
@@ -701,10 +701,10 @@ def chk_double_bottom(df: pd.DataFrame) -> bool:
     pre = prices.iloc[:i1]                              # ⑤ネックラインより高所から下落開始
     if len(pre) == 0 or float(pre.max()) < neckline:
         return False
-    c, p = df.iloc[-1], df.iloc[-2]
+    c = df.iloc[-1]
     if c['close'] <= neckline * 1.005:                  # 突破
         return False
-    if p['volume'] <= 0 or c['volume'] < p['volume'] * 1.5:  # ③出来高前日1.5倍
+    if not _vol_surge(c, 1.5):                          # ③出来高25日平均1.5倍
         return False
     return True
 
@@ -732,7 +732,7 @@ def chk_flag(df: pd.DataFrame) -> bool:
         return False
     if c['close'] <= float(flag['high'].max()):         # ブレイク
         return False
-    if flag['volume'].mean() <= 0 or c['volume'] < flag['volume'].mean() * 1.5:  # ブレイク出来高急増
+    if not _vol_surge(c, 1.5):                          # ブレイク出来高25日平均1.5倍
         return False
     return True
 
@@ -753,10 +753,10 @@ def chk_inv_head_shoulders(df: pd.DataFrame) -> bool:
     if rs[0] - ls[0] < 15:
         return False
     neckline = float(seg.iloc[ls[0]:rs[0] + 1].max())        # ③ネックライン超え
-    c, p = df.iloc[-1], df.iloc[-2]
+    c = df.iloc[-1]
     if c['close'] <= neckline * 1.005:
         return False
-    if p['volume'] <= 0 or c['volume'] < p['volume'] * 1.5:  # ④出来高前日1.5倍
+    if not _vol_surge(c, 1.5):                          # ④出来高25日平均1.5倍
         return False
     return True
 
@@ -812,13 +812,13 @@ def chk_uwabane_large(df: pd.DataFrame) -> bool:
     if len(df) < 27:
         return False
     p, c = df.iloc[-2], df.iloc[-1]
-    if p['close'] <= 0:
+    if p['high'] <= 0:
         return False
-    if (c['open'] - p['close']) / p['close'] < 0.02:    # ①前日終値から2%以上ギャップ
+    if c['open'] <= p['high']:                           # ①上放れ（始値>前日高値で真の窓開け）
         return False
     if c['close'] <= c['open']:                         # ②陽線
         return False
-    if not _vol_surge(c, 2.0):                          # ③出来高2倍
+    if not _vol_surge(c, 2.0):                          # ③出来高25日平均2倍
         return False
     lookback = df['close'].iloc[-252:-1] if len(df) >= 253 else df['close'].iloc[:-1]
     h52 = float(lookback.max())
@@ -835,10 +835,10 @@ def chk_island_reversal(df: pd.DataFrame) -> bool:
     c, prev = df.iloc[-1], df.iloc[-2]
     if c['open'] <= prev['high'] or c['close'] <= c['open']:  # ②上昇ギャップ（陽線）
         return False
+    if not _vol_surge(c, 1.5):                          # ④出来高25日平均1.5倍
+        return False
     vm = c['vol_ma25']
     if pd.isna(vm) or vm <= 0:
-        return False
-    if prev['volume'] <= 0 or c['volume'] < prev['volume'] * 1.5:  # ④出来高前日1.5倍
         return False
     for L in (1, 2, 3):                                 # ①島の長さ1〜3日
         if len(df) < L + 2:
@@ -878,10 +878,10 @@ def chk_triple_bottom(df: pd.DataFrame) -> bool:
     if mid1 < avg * 1.05 or mid2 < avg * 1.05:
         return False
     neckline = float(prices.iloc[i1:i3 + 1].max())
-    c, p = df.iloc[-1], df.iloc[-2]
+    c = df.iloc[-1]
     if c['close'] <= neckline * 1.005:                  # ③ネックライン突破
         return False
-    if p['volume'] <= 0 or c['volume'] < p['volume'] * 1.5:  # 出来高前日1.5倍
+    if not _vol_surge(c, 1.5):                          # 出来高25日平均1.5倍
         return False
     if not (vo3 < vo1 and vo3 < vo2):                   # ④3回目で出来高最少
         return False
@@ -940,6 +940,8 @@ def chk_vol_surge_200(df: pd.DataFrame) -> bool:
     c = df.iloc[-1]
     vm = c['vol_ma25']
     if pd.isna(vm) or vm <= 0:
+        return False
+    if c['close'] <= c['open']:                          # ②陽線（株価上昇）
         return False
     return bool(c['volume'] >= vm * 3.0)                # ①25日平均の3倍以上
 
@@ -1170,8 +1172,7 @@ def chk_ascending_triangle(df: pd.DataFrame) -> bool:
     vm = c['vol_ma25']                                  # ③内部出来高枯れ
     if pd.isna(vm) or vm <= 0 or segment['volume'].mean() >= vm:
         return False
-    p = df.iloc[-2]                                      # ④突破出来高前日1.5倍
-    if p['volume'] <= 0 or c['volume'] < p['volume'] * 1.5:
+    if not _vol_surge(c, 1.5):                          # ④突破出来高25日平均1.5倍
         return False
     return True
 
@@ -1225,14 +1226,14 @@ def chk_base_breakout(df: pd.DataFrame) -> bool:
 def chk_williams_r(df: pd.DataFrame) -> bool:
     if len(df) < 20:
         return False
-    c, p = df.iloc[-1], df.iloc[-2]
+    c = df.iloc[-1]
     wpr = c['williams_r']
     if pd.isna(wpr) or wpr < -50:                       # ②現在 %R>=-50
         return False
     past = df['williams_r'].iloc[-15:-1].dropna()       # ①過去14日に %R<=-80
     if len(past) == 0 or not (past <= -80).any():
         return False
-    if p['volume'] <= 0 or c['volume'] < p['volume'] * 1.2:  # ③出来高前日1.2倍
+    if not _vol_surge(c, 1.0):                          # ③出来高25日平均以上
         return False
     return True
 
@@ -1250,8 +1251,9 @@ def chk_canslim(df: pd.DataFrame) -> bool:
     h52 = float(lookback.max())
     if h52 <= 0 or c['close'] < h52 * 0.75:             # ①52週高値の75%以上
         return False
-    if p['volume'] <= 0 or c['volume'] < p['volume'] * 1.3:  # ②出来高前日1.3倍
+    if not _vol_surge(c, 1.3):                          # ②出来高25日平均1.3倍
         return False
+    p = df.iloc[-2]
     if p['close'] <= 0 or (c['close'] - p['close']) / p['close'] < 0.01:  # ④上昇率が出来高に見合う
         return False
     return True
@@ -1314,21 +1316,24 @@ def chk_weekly_po_first(df: pd.DataFrame) -> bool:
 
 # 48 上放れ並び赤
 def chk_narabiaka(df: pd.DataFrame) -> bool:
-    if len(df) < 4:
+    if len(df) < 27:
         return False
     d0, d1, d2 = df.iloc[-3], df.iloc[-2], df.iloc[-1]
-    if d0['close'] <= 0 or (d1['open'] - d0['close']) / d0['close'] < 0.01:  # ⑤1日目前日比1%ギャップアップ
+    if d0['high'] <= 0 or d1['open'] <= d0['high']:    # ⑤上放れ（始値>前日高値で真の窓開け）
         return False
     for d in (d1, d2):                                  # ①両日陽線&実体2%以上
         if d['open'] <= 0 or d['close'] <= d['open']:
             return False
         if (d['close'] - d['open']) / d['open'] < 0.02:
             return False
-    if d1['close'] <= 0 or abs(d2['open'] - d1['close']) / d1['close'] > 0.01:  # ②2日目始値が1日目終値付近
+    if d1['close'] <= 0 or abs(d2['open'] - d1['close']) / d1['close'] > 0.02:  # ②2日目始値が1日目終値付近
         return False
     if d2['close'] <= d1['close'] * 1.005:              # ③2日目終値>1日目終値
         return False
     if not (d1['volume'] > d0['volume'] and d2['volume'] > d1['volume']):  # ④出来高増加傾向
+        return False
+    vm = df['vol_ma25'].iloc[-1]
+    if pd.isna(vm) or vm <= 0 or max(d1['volume'], d2['volume']) < vm:  # 少なくとも1日は25日平均以上
         return False
     return True
 
