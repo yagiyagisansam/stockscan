@@ -1141,8 +1141,12 @@ async function loadData() {
   render();
 }
 
+function needsJapaneseName(name) {
+  return !name || !/[　-鿿＀-￯]/.test(name);
+}
+
 async function backfillMissingNames() {
-  const nameless = state.stocks.filter(s => !s.name);
+  const nameless = state.stocks.filter(s => needsJapaneseName(s.name));
   if (nameless.length === 0) return;
   let updated = false;
   for (const stock of nameless) {
