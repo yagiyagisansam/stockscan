@@ -1,0 +1,2303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テクニカル分析手法 全49手法 詳細分析レポート</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #1a1a2e;
+    background: #f8f9fa;
+  }
+  .cover {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white;
+    padding: 80px 60px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    page-break-after: always;
+  }
+  .cover h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    border-bottom: 3px solid #e94560;
+    padding-bottom: 20px;
+  }
+  .cover .subtitle { font-size: 18px; color: #a8b2d8; margin-bottom: 40px; }
+  .cover .meta { font-size: 14px; color: #8892b0; }
+  .cover .count-badge {
+    display: inline-block;
+    background: #e94560;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 30px 0;
+  }
+  .toc {
+    padding: 40px 60px;
+    background: white;
+    page-break-after: always;
+  }
+  .toc h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #1a1a2e; border-left: 4px solid #e94560; padding-left: 12px; }
+  .toc-group { margin-bottom: 16px; }
+  .toc-group-name { font-size: 12px; font-weight: 700; color: #e94560; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .toc-item { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dotted #ddd; }
+  .toc-item .num { color: #8892b0; font-size: 11px; min-width: 28px; }
+  .toc-item .pname { flex: 1; }
+  .toc-item .stars-small { color: #f4a261; font-size: 11px; }
+  .content { padding: 0; }
+  .pattern-card {
+    background: white;
+    margin: 0;
+    padding: 40px 60px;
+    page-break-inside: avoid;
+    page-break-after: always;
+    border-bottom: 1px solid #eee;
+  }
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e94560;
+  }
+  .card-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8892b0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .card-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1.3;
+  }
+  .card-code {
+    font-size: 11px;
+    font-family: monospace;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #555;
+    margin-top: 4px;
+    display: inline-block;
+  }
+  .card-group {
+    font-size: 11px;
+    color: white;
+    background: #0f3460;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-left: 8px;
+  }
+  .card-rating {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .stars { font-size: 22px; color: #f4a261; }
+  .usage-tag {
+    font-size: 11px;
+    color: #555;
+    margin-top: 6px;
+  }
+  .section {
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e94560;
+    margin-bottom: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid #f0d0d5;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-title::before {
+    content: '■';
+    font-size: 11px;
+  }
+  .section-body {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #333;
+    padding-left: 8px;
+  }
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .signal-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 8px;
+  }
+  .signal-bullish { background: #d4edda; color: #155724; }
+  .page-footer {
+    font-size: 10px;
+    color: #aaa;
+    text-align: right;
+    padding: 10px 60px;
+    border-top: 1px solid #eee;
+  }
+  @media print {
+    body { background: white; }
+    .pattern-card { border: none; box-shadow: none; }
+    @page { margin: 15mm; size: A4; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="card-num">TECHNICAL ANALYSIS REPORT</div>
+  <h1>テクニカル分析手法<br>全49手法 詳細分析レポート</h1>
+  <div class="subtitle">StockScan JP — 実装手法 完全解説版</div>
+  <div class="count-badge">全 49 手法収録</div>
+  <div class="meta">
+    <p>生成日: 2026-06-03 05:34 JST</p>
+    <p>対象市場: 東京証券取引所（東証）</p>
+    <p>データソース: yfinance（Yahoo Finance）</p>
+    <p>分析期間: 主に直近1年間（一部2年・週足）</p>
+  </div>
+</div>
+
+<div class="toc">
+  <h2>目次</h2>
+  <div class="toc-group"><div class="toc-group-name">基本ローソク足</div><div class="toc-item"><span class="num">No.01</span><span class="pname">陽の包み足</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.02</span><span class="pname">下ひげ陽線（ハンマー）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.03</span><span class="pname">朝の明星</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.04</span><span class="pname">陽の三兵</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.05</span><span class="pname">窓開け陽線</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">移動平均線</div><div class="toc-item"><span class="num">No.06</span><span class="pname">パーフェクトオーダー</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.07</span><span class="pname">GC 25/75日線</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.08</span><span class="pname">25日線デビュー買い</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.09</span><span class="pname">75日線回復</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.10</span><span class="pname">MA収縮後ブレイク</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.11</span><span class="pname">株価が全MA上</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">出来高</div><div class="toc-item"><span class="num">No.12</span><span class="pname">出来高急増（前日比150%超）</span><span class="stars-small">★★☆☆☆</span></div><div class="toc-item"><span class="num">No.13</span><span class="pname">新高値＋出来高急増</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.14</span><span class="pname">出来高枯れ→急増</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">保ち合いパターン</div><div class="toc-item"><span class="num">No.15</span><span class="pname">VCP（ボラティリティ収縮パターン）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.16</span><span class="pname">カップウィズハンドル</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.17</span><span class="pname">タイト保ち合い</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.19</span><span class="pname">フラッグ・ペナント</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.22</span><span class="pname">高値圈コンソリデーション</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">反転パターン</div><div class="toc-item"><span class="num">No.18</span><span class="pname">ダブルボトム（W底）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.20</span><span class="pname">逆ヘッド&ショルダー</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">モメンタム</div><div class="toc-item"><span class="num">No.21</span><span class="pname">52週新高値</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">A群：大型陽線系</div><div class="toc-item"><span class="num">No.23</span><span class="pname">大陽線5%超（A-05）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.24</span><span class="pname">上放れ陽線（A-07）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">B群：ローソク足複合</div><div class="toc-item"><span class="num">No.25</span><span class="pname">三川明けの明星（B-02）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.26</span><span class="pname">離れ小島（B-06）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.27</span><span class="pname">三点底（B-08）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.28</span><span class="pname">包み足＋出来高（B-10）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.29</span><span class="pname">窓開け＋出来高（B-11）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">C群：MA系</div><div class="toc-item"><span class="num">No.30</span><span class="pname">25日線タッチ反発（C-08）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.31</span><span class="pname">ワインスタインS2（C-10）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">D群：出来高系</div><div class="toc-item"><span class="num">No.32</span><span class="pname">出来高200%急増（D-02）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.33</span><span class="pname">OBV新高値（D-06）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.34</span><span class="pname">ポケットピボット（D-07）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.35</span><span class="pname">出来高加速（D-09）</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">E群：保ち合い上級</div><div class="toc-item"><span class="num">No.36</span><span class="pname">スーパータイト（E-03）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.37</span><span class="pname">ハイタイトフラッグ（E-06）</span><span class="stars-small">★★★★★</span></div></div><div class="toc-group"><div class="toc-group-name">F群：底打ち系</div><div class="toc-item"><span class="num">No.38</span><span class="pname">V字回復（F-03）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.39</span><span class="pname">逆三山（F-05+F-08）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.40</span><span class="pname">円形底（F-06）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">G群：ブレイクアウト系</div><div class="toc-item"><span class="num">No.41</span><span class="pname">上昇三角形（G-03）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.42</span><span class="pname">上場来高値更新（G-05）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.43</span><span class="pname">ベース内ブレイク（G-07）</span><span class="stars-small">★★★★★</span></div></div><div class="toc-group"><div class="toc-group-name">I群：オシレーター系</div><div class="toc-item"><span class="num">No.44</span><span class="pname">ウィリアムズ%R（I-10）</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">K群：複合指標</div><div class="toc-item"><span class="num">No.45</span><span class="pname">CAN-SLIM複合（K-04）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.46</span><span class="pname">ネックライン突破＋出来高（K-07）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.47</span><span class="pname">週足PO初達成（K-09）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">追加：ローソク足</div><div class="toc-item"><span class="num">No.48</span><span class="pname">上放れ並び赤</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">追加：複合系</div><div class="toc-item"><span class="num">No.49</span><span class="pname">パンパカパン押し目（PPP）</span><span class="stars-small">★★★★☆</span></div></div>
+</div>
+
+<div class="content">
+  
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.01 &nbsp; <span class="card-code">bullish_engulfing</span>
+        <span class="card-group">基本ローソク足</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">陽の包み足</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：押し目買い・反転確認のエントリートリガー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">前日の陰線を完全に包む大陽線が出現するローソク足パターン。売り圧力が完全に吸収され、買い方が主導権を握ったことを示す反転シグナル。下落トレンド末期や支持線付近で出現した場合に特に有効。始値が前日終値以下で始まり、終値が前日始値以上で引けることが条件。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">S&Pおよび日経構成銘柄での研究（Bulkowski, 2008）では、下落トレンド後の陽の包み足の翌日以降10日間平均上昇率は+2.1%。日本株では出来高を伴う場合の的中率が60〜65%と報告されている（2010〜2020年、東証1部）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①下落トレンド継続中または支持線付近で出現 ②出来高が25日平均の1.5倍以上 ③翌日に確認足（陽線）が続くことで精度向上 ④週足でも同形成が一致すると信頼性大幅増</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">単独では誤シグナルが多く（的中率55%程度）、出来高フィルターなしでは信頼性が低い。横ばい相場中では機能しない。ギャップ開けの場合は包み足が成立しないように見えるが、実態は強い反転を示していることもある。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">東証では値幅制限（ストップ高/安）の影響で完全な包み足が出にくい銘柄がある。小型株では流動性が低く誤シグナルが増える傾向。225採用銘柄やTOPIX100構成銘柄での精度が相対的に高い。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.02 &nbsp; <span class="card-code">hammer</span>
+        <span class="card-group">基本ローソク足</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">下ひげ陽線（ハンマー）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：底値圏での反転エントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">実体が小さく、下ひげが実体の2倍以上の陽線。安値圏で出現した場合に底打ちシグナルとして機能する。寄り付き後に大きく売られたが、買い方が押し返して高値圏で引けた状態を示す。上ひげが短い（実体の0.3倍以下）ことが条件。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Nison（1991）以来の古典的パターン。日本株研究（2015〜2023年）では、200日線付近・RSI30以下での組み合わせで翌週上昇確率67%。単独使用時は52〜58%程度。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①52週安値圏（直近20日安値付近）で出現 ②出来高が増加 ③翌日陽線確認 ④RSI 30以下と重なると精度向上 ⑤支持線・節目価格帯での出現が重要</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">上昇トレンド中や抵抗線付近での出現では逆に陰転する可能性。下ひげの長さだけを見ると誤判定が増える。継続する陰線が3本以上続いた後でないと有効性が低い。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株は機関投資家の裁定取引が多く、下ひげが長い銘柄でも翌日ギャップダウンすることがある。決算後の急落後に出現するハンマーは特に注目される。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.03 &nbsp; <span class="card-code">morning_star</span>
+        <span class="card-group">基本ローソク足</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">朝の明星</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：底値圏の強力な反転シグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">3本のローソク足で構成される反転パターン。①大陰線→②小実体（星：gap down）→③大陽線（gap up）の順に出現。2日目は買い売り均衡、3日目に完全に買い方優勢となった状態。特に底値圏での出現で信頼性が高い。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Bulkowski（2021）の検証では、上昇継続率63%、平均リターン+4.8%（10日保有）。日本株ではギャップが小さいケースが多く、厳格条件での出現頻度は低いが信頼性は高い。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①明確な下落トレンド後に出現 ②2日目にギャップダウンして始まり、星型（十字線・コマ）が出現 ③3日目に1日目陰線の半値以上まで回復する陽線 ④出来高：3日目に急増</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">条件が厳格なため出現頻度が低い。ギャップを伴わない日本株では変形版での判定が必要。3日目の陽線が1日目の実体の半分未満では弱い反転。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株は値幅制限でギャップが制限されるため、「変形朝の明星」として下ひげ+十字線+大陽線の連続で判定することが現実的。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.04 &nbsp; <span class="card-code">three_white_soldiers</span>
+        <span class="card-group">基本ローソク足</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">陽の三兵</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：トレンド転換確認・押し目前の利確タイミング把握</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">3日連続で陽線が続き、それぞれの終値が前日終値を上回るパターン。継続的な買い圧力の存在を示し、トレンド転換後の上昇継続シグナルとして機能。各ローソク足の実体が大きく、上ひげが短いことが理想形。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">研究（Morris, 1992; Bulkowski, 2008）では上昇継続率83%と報告。ただし平均リターンは+2.3%程度と限定的。買われすぎ圏（RSI70以上）での出現後は調整リスク増。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①底値圏または保ち合いブレイク後に出現 ②各日の始値が前日実体の中央以上（窓なし連続上昇） ③出来高が3日間で漸増 ④実体長が実体の75%以上（上ひげ短い）</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">3日間の上昇後はいったん調整が入りやすく、直後のエントリーは損失リスクが高い。過熱感が出た後のシグナルは逆に売りトリガーになり得る。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では機関投資家の利確が3日目に入りやすく、4日目以降の上昇が鈍化するケースが多い。週をまたぐ三兵（月〜水）は特に強いとされる。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.05 &nbsp; <span class="card-code">gap_up</span>
+        <span class="card-group">基本ローソク足</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">窓開け陽線</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：ブレイクアウトエントリー・トレンド転換確認</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">前日終値より高い価格でギャップアップして始まり、そのまま陽線で引けるパターン。強い買い需要の存在を示し、特に出来高を伴う場合は新たな上昇トレンドのスタートシグナルとなる。窓（ギャップ）は支持線として機能することが多い。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">O'Neil（CANSLIM）体系でも重要視される。保ち合いブレイク後のギャップアップは特に有効で、翌3週間の上昇継続率は75%以上（IBD研究）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①保ち合い（ベース）を形成した後にブレイク ②ギャップが1%以上 ③出来高が25日平均の1.5倍以上 ④週足でも上昇基調継続</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">決算ギャップなど材料によるギャップは短命に終わることも多い。ギャップフィル（窓埋め）が50%程度起こる。薄商いのギャップは特に信頼性が低い。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株は値幅制限でギャップが小さくなる傾向。しかし決算またぎの翌朝ギャップは強いシグナル。225先物の動きと一致するギャップは特に持続性が高い。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.06 &nbsp; <span class="card-code">perfect_order</span>
+        <span class="card-group">移動平均線</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">パーフェクトオーダー</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：トレンド確認・ポジション保有継続の判断</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">株価 ＞ MA5 ＞ MA25 ＞ MA75（または株価 ＞ MA5 ＞ MA25 ＞ MA65）の並び順が完成している状態。短・中・長期の全移動平均線が上向きに整列し、強い上昇トレンドの継続を示す。相場の方向性が明確で最も安定したトレンド状態。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">トレンドフォロー戦略の基本。IBD・Investor's Business Dailyのデータ（2000〜2020年）ではパーフェクトオーダー継続中の株式の年率リターンは平均+18%超。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①全MAが上向き ②直近5日間で株価がMA5を下抜けしていない ③出来高が平均以上で維持 ④セクターETFも上昇基調</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">パーフェクトオーダー確認時点では既に大きく上昇済みのことが多く、追いかけエントリーはリスクが高い。大型下落時は一気に崩れる。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では米国株と比べてパーフェクトオーダーの継続期間が短い傾向。外需株（トヨタ、ソニー等）のほうが国内需要株より継続しやすい。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.07 &nbsp; <span class="card-code">gc_25_75</span>
+        <span class="card-group">移動平均線</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">GC 25/75日線</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：中期トレンド転換の確認</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">25日移動平均線が75日移動平均線を上抜けるゴールデンクロス。中期上昇トレンドの開始を示す古典的シグナル。75日線が下向きから上向きに転換しながら発生するGCは特に強いシグナル。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">シンプルだが検証実績が豊富。日経225構成銘柄の研究（2000〜2022年）でGC後3ヶ月保有の勝率は61%、平均リターン+6.2%。ただしデッドクロス手前でのGCは誤シグナルが多い。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①75日線が下向きから水平または上向きに転換している ②出来高がGC時点で増加 ③株価が75日線より上にいる ④セクター全体が上昇基調</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">遅行指標のため、GC確認時点では既に10〜20%上昇済みのことが多い。横ばい相場ではGC→DC→GCを繰り返しチョッピングが続く（ホイップソー）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株の機関投資家はGCを重視する傾向が強く、GC発生時に買いが集中することで自己実現的に上昇するケースが見られる。特に25日・75日線GCはメディア報道されることも多い。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.08 &nbsp; <span class="card-code">ma25_debut</span>
+        <span class="card-group">移動平均線</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">25日線デビュー買い</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：中期トレンド転換の初動エントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">株価が25日移動平均線を割り込んでいた状態から、25日線を上抜けて定着し始めたタイミング。下落後の反発ではなく、トレンド転換の初動を捉える手法。25日線が下向きから水平・上向きに変わる局面での上抜けが特に有効。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">日本独自の手法として「移動平均線デビュー買い」として知られる。実証データでは25日線デビュー後2週間の上昇確率60〜65%（条件付き）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①過去10日間で少なくとも1回25日線を下回っていた ②本日の終値が25日線を明確に上抜け（0.5%以上） ③25日線が水平〜上向きに転換中 ④出来高が前日比1.2倍以上</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">下落トレンド継続中のデッドキャットバウンスでも発生する。75日線が下向きの場合は成功率が大幅低下。複数回の偽ブレイクに注意。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では「25日線が支持線」として機能する認識が広く共有されており、機関投資家も意識する。特に信用取引の多い中小型株では自己実現的に機能する。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.09 &nbsp; <span class="card-code">ma75_recovery</span>
+        <span class="card-group">移動平均線</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">75日線回復</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：中期トレンド転換の確認・押し目からの復帰確認</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">株価が75日移動平均線を下回っていた状態から回復し、75日線を上抜けるパターン。中期下落トレンドからの脱出を示す。75日線はいわゆる「中期の壁」であり、これを回復することで機関投資家の買いが再開されることが多い。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">75日線回復後1ヶ月の上昇確率は58〜63%。ただし200日線（約40週）が下向きの場合は成功率50%以下に低下。出来高急増を伴う75日線回復は特に有効。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①直近20日以上75日線を下回っていた ②本日の終値が75日線を0.5%以上上回る ③出来高が25日平均の1.3倍以上 ④75日線が水平〜上向き転換中</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">大下落後の「戻り売り」で75日線付近が抵抗線になるケースも多い。一度75日線を回復しても翌日以降に割り込む「偽回復」が頻発する。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では75日線（約3ヶ月）を重視する投資家・アナリストが多く、75日線回復レポートが証券会社のレーティング改善に繋がることがある。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.10 &nbsp; <span class="card-code">ma_squeeze_breakout</span>
+        <span class="card-group">移動平均線</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">MA収縮後ブレイク</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：ブレイクアウトの高勝率エントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">複数の移動平均線（MA5・MA25・MA75）が収束して「スクイーズ」状態になった後、株価が一気にブレイクアウトするパターン。保ち合いのエネルギーが蓄積され、方向感が出た際に大きな値動きが生じる。MAの収束幅が株価の2%以内が典型。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Bollinger Band Squeezeの研究（Keltner Channel比較）でも実証。スクイーズ後のブレイクは通常の2〜3倍の値幅が期待できる（LazyBear, 2014）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①MA5・MA25・MA75の最大差が株価の3%以内に収束 ②株価が複数MAを明確に上抜け ③出来高が急増（25日平均の1.5倍以上） ④収束期間が最低5営業日以上</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">ダマシが多く、ブレイク後すぐに反転するケースが3〜4割。方向がわからないため、単純な上方ブレイクの確認だけでは不十分。VIX等の外部環境も確認が必要。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では決算前後のスクイーズが特に多く見られる。決算ギャップとMA収縮後ブレイクの組み合わせは強力なシグナル。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.11 &nbsp; <span class="card-code">price_above_all_ma</span>
+        <span class="card-group">移動平均線</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">株価が全MA上</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：強気相場での保有継続・ポジションサイジング根拠</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">株価がMA5・MA25・MA75の全てを上回っており、かつ全MAが上向きの状態。パーフェクトオーダーと似るが、こちらは「株価 vs 各MA」の位置関係に注目。全MAが支持線として機能し、下落時の押し目買い需要が多層的に存在する。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">マーケット全体が強気相場（MSCI World指数が200日線上）の条件と組み合わせた場合、年率リターンの中央値が+22%との研究あり。単独では+12%程度。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①株価 ＞ MA5 ＞ MA25 ＞ MA75 ②MA25・MA75がいずれも上向き ③直近5営業日でいずれのMAも割り込んでいない</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">上昇が進んだ後の確認シグナルのため、エントリータイミングとしては遅い。大型調整開始時にはこの条件が崩れるまで持ち続けるリスク。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株でこの状態が続く銘柄は「強い銘柄」として機関投資家の監視リストに入ることが多い。四半期末のリバランス買いが入りやすい。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.12 &nbsp; <span class="card-code">vol_surge_150</span>
+        <span class="card-group">出来高</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">出来高急増（前日比150%超）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★☆☆☆</div>
+      <div class="usage-tag">推奨用途：トリガーシグナルの補助指標</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">当日出来高が前日比150%以上（または25日平均比1.5倍以上）の急増を示すパターン。大きな需給変化の存在を示し、機関投資家の参入・退出の可能性を示唆する。価格動向と組み合わせて方向性を判断することが重要。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">出来高急増単独の研究では方向性なしで上昇・下落が5:5に近い。しかし上昇中の出来高急増は継続上昇率64%、下落中の出来高急増は底値シグナルとして機能率58%。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①25日平均出来高の1.5倍以上 ②前日比でも150%以上 ③株価が上昇または主要支持線付近 ④セクター全体でなく個別銘柄固有の出来高増加</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">出来高増加だけでは方向が不明。ニュース・決算等の一過性材料による出来高急増は継続性なし。先物・ETFの需給変動で個別株出来高が増えることもある。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では信用取引の整理が出来高急増を伴うことが多く、強制決済による出来高増は底打ちシグナルになることがある。月末・四半期末の特殊需給にも注意。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.13 &nbsp; <span class="card-code">new_high_vol</span>
+        <span class="card-group">出来高</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">新高値＋出来高急増</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：ブレイクアウトエントリーの最重要シグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">一定期間（52週または直近高値）の新高値を更新しながら出来高が急増するパターン。需給と値動きの両方が揃った強力な上昇シグナル。O'Neilのブレイクアウト理論の核心部分。新高値更新には上値抵抗がなく、心理的にも追い風。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">IBD（Investor's Business Daily）の研究では、52週高値更新＋出来高150%以上のケースで翌4週間の平均上昇率+8.3%、勝率68%（1990〜2020年 S&P500除外銘柄）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①直近52週または直近高値を上抜け ②出来高が25日平均の1.5倍以上 ③株価が全MAより上 ④ベース（保ち合い）形成後のブレイクアウトであること</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">既に上昇済みの高値追いとなるため、押し目リスクが高い。出来高が「一時的な話題性」による場合は短命。大型株では薄い出来高でも新高値が出やすい。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">東証プライムでの新高値銘柄は日経電子版等でリスト掲載され自己実現的に上昇することがある。決算月（3月・9月）前後の新高値は特に注目度が高い。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.14 &nbsp; <span class="card-code">vol_dry_surge</span>
+        <span class="card-group">出来高</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">出来高枯れ→急増</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：ブレイクアウト前の準備シグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">出来高が継続的に低下（枯れ）た後、急増に転じるパターン。枯れ期間は株価も横ばいになりエネルギーが蓄積される。その後の出来高急増は新しい需要の参入を示し、価格上昇を伴うと強いブレイクアウトシグナルとなる。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Stan Weinstein（1988）のベース形成理論と一致。出来高「収縮→急増」パターンの上昇継続率は69%（VCPの構成要素としても重要）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①直近10日以上出来高が25日平均の60%以下に低下 ②本日の出来高が前日の2倍以上かつ25日平均の1.2倍以上 ③株価が同時に上昇 ④保ち合い末期での出現が最も効果的</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">出来高が枯れただけで株価が下落している場合、次の急増が下方ブレイクになることがある。方向の事前判断が難しい。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では夏季（お盆前後）や年末年始に出来高が自然に枯れやすく、季節性を考慮した判断が必要。薄商いの小型株では出来高変化率が大きく振れやすい。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.15 &nbsp; <span class="card-code">vcp</span>
+        <span class="card-group">保ち合いパターン</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">VCP（ボラティリティ収縮パターン）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★★</div>
+      <div class="usage-tag">推奨用途：高確率のブレイクアウトエントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">Mark Minervinによって体系化。高値から一連の調整（振れ幅が小さくなる）を繰り返しながら出来高が枯れ、最終的にピボットポイントを出来高急増で突破するパターン。振れ幅の縮小（例：15%→10%→5%）がVCPの特徴。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Minervini（2013）の検証では、VCPからのブレイクアウトの勝率80%以上（条件付き）、平均リターン+20〜40%。IBDも独立検証で75%以上の勝率を報告。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①上昇→調整→上昇→調整の繰り返しで振れ幅が縮小 ②出来高が各調整で縮小 ③最終的な振れ幅が5%以内 ④ブレイクアウト時の出来高が急増 ⑤マーケット全体が強気</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">主観的なパターン認識が必要で、自動検出が難しい。ブレイクアウト前の「シェイクアウト（偽ブレイク）」が頻発。高値圏での形成は信頼性低下。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株でもVCPは有効だが、流動性が低い中小型株では出来高の読み取りが難しい。プライム上場・時価総額500億円以上の銘柄で使用するのが望ましい。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.16 &nbsp; <span class="card-code">cup_with_handle</span>
+        <span class="card-group">保ち合いパターン</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">カップウィズハンドル</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★★</div>
+      <div class="usage-tag">推奨用途：中長期上昇の最高確率エントリーパターン</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">William O'Neil考案の最重要パターン。U字型のカップ（7〜65週）を形成後、カップ右端から小さなハンドル（1〜2週間、下落5%以内）を経てブレイクアウト。ハンドルでの出来高枯れとブレイク時の急増が必須条件。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">O'Neil（1988〜2009）の研究では2000〜2008年の大型上昇株のうち70%以上がカップウィズハンドルを形成。IBDのデータでは平均上昇率+88%（エントリー後1〜2年）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①カップ深さ：高値から10〜30%（強気相場）または最大35% ②カップの長さ：7〜65週 ③ハンドル：カップ右端の1〜2週間、出来高枯れ ④ブレイクアウト：出来高150%以上急増</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">形成に長期間（数ヶ月）を要するため、短期トレードには不向き。ハンドル部分が深すぎる（10%超）と失敗率増加。マーケット全体が弱気相場では機能しない。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株でもカップウィズハンドルは有効だが、株主構成が安定した大型株（任天堂、ソニー等）での発生が多い。週足チャートでの確認を推奨。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.17 &nbsp; <span class="card-code">tight_area</span>
+        <span class="card-group">保ち合いパターン</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">タイト保ち合い</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：ブレイクアウト前の待機・ポジション準備</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">一定期間（通常3〜8週間）にわたって株価が非常に狭いレンジ（高値・安値の差が3〜5%以内）で推移する状態。機関投資家が株価を支えながら静かに買い集めている可能性を示す。出来高も枯れることが多い。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">O'NeilのCANSLIM理論でも「タイトな保ち合い（Tight Trading Range）」として重視される。保ち合い期間中の出来高縮小と株価レンジ縮小の組み合わせは、強いブレイクアウト予兆。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①直近10〜20営業日の高値・安値の差が株価の5%以内 ②出来高が縮小傾向 ③株価が主要MA（25日・75日）の上に位置 ④直前に上昇トレンドが存在する</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">「方向なし保ち合い」と「下落前の低ボラ」の区別が難しい。ブレイクの方向が事前に予測できない。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では四半期決算前にタイト保ち合いが形成されやすく、決算内容によってどちらかにブレイクすることが多い。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.18 &nbsp; <span class="card-code">double_bottom</span>
+        <span class="card-group">反転パターン</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">ダブルボトム（W底）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：底打ち確認後のトレンド転換エントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">2回の安値（ほぼ同水準）を形成した後、ネックライン（中間高値）を上抜けるW字型の底打ちパターン。2回目の安値で「同じ水準で下げ止まる」ことが需要の存在を示す。ネックラインブレイクが買いシグナル。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Bulkowski（2005）の研究では、ダブルボトム確認後の平均上昇率+26%、上昇継続率78%。2回目の安値が1回目より若干高い（高値安値）場合は成功率がさらに向上。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①1回目と2回目の安値差が3%以内 ②2つの安値の間に明確な反発（ネックライン）がある ③ネックライン突破時に出来高急増 ④期間：数週間〜数ヶ月</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">ネックライン突破後に再び元の水準に戻る「偽ブレイク」が約30%。下落トレンドの途中で出現した場合は失敗率が上昇。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では「W底」として広く知られており、自己実現的に機能しやすい。証券会社のアナリストレポートでも頻繁に言及される。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.19 &nbsp; <span class="card-code">flag</span>
+        <span class="card-group">保ち合いパターン</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">フラッグ・ペナント</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：トレンド継続の押し目エントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">急上昇（旗竿）の後、狭いレンジで若干の調整（フラッグ：平行チャネル、ペナント：三角形）を形成し、再び上放れるパターン。急上昇後の「休息」であり、トレンドの継続を示す最も信頼性の高いコンティニュエーションパターン。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Bulkowski（2021）の研究では、フラッグのターゲット達成率72%、平均リターン+11.9%。ペナントはやや高く+14.6%。旗竿の長さと傾きが重要な決定要因。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①旗竿：5日以上で10%以上の急騰 ②フラッグ：5〜20日間、上昇に対してやや反落 ③出来高：フラッグ形成中に枯れ、ブレイク時に急増 ④ブレイク後のターゲット：旗竿の長さ分の上昇</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">旗竿が長すぎる（30日以上）場合は失敗率増加。調整幅が50%以上になるとフラッグではなくリバーサルの可能性。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では材料出た直後の急騰後にフラッグが形成されることが多く、1〜2週間後のブレイクがエントリーチャンス。ただし材料の持続性確認が重要。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.20 &nbsp; <span class="card-code">inv_head_shoulders</span>
+        <span class="card-group">反転パターン</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">逆ヘッド&ショルダー</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：底打ちからの本格トレンド転換エントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">3つの安値で構成される底打ちパターン。中央の安値（頭：ヘッド）が最も深く、両側の安値（肩：ショルダー）はより浅い。ネックライン（両肩の高値を結ぶ線）を出来高急増を伴ってブレイクすることが買いシグナル。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">テクニカル分析の最も検証されたパターンの一つ。Edwards & Magee（1948年初版）以来の研究では、ネックラインブレイク後の平均上昇率+37%。Bulkowskiの近代的研究では+38%、成功率83%。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①左肩・頭・右肩の安値でヘッドが最も深い ②右肩の安値が左肩と近い水準 ③ネックライン：右肩の高値を超えること ④ブレイク時の出来高急増</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">形成に数週間〜数ヶ月かかる。ネックラインが傾いている場合は判定が難しい。ブレイク後に「プルバック（ネックラインへの戻り）」が頻発。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株でも最もよく知られたパターンの一つ。主要指数（日経225等）でも出現し、市場参加者の注目度が高いため自己実現的に機能しやすい。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.21 &nbsp; <span class="card-code">52week_high</span>
+        <span class="card-group">モメンタム</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">52週新高値</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：ブレイクアウトの方向性確認</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">直近52週（約1年）の最高値を更新するパターン。52週高値付近では過去の買い手が「やれやれ売り」を出すが、これを吸収して高値更新できた場合は需要の強さを示す。上値抵抗が消えた状態でのさらなる上昇が期待できる。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">モメンタム投資の根幹。学術研究（Jegadeesh & Titman, 1993）では52週高値付近の株式は直後12ヶ月で市場平均を+7.3%アウトパフォーム。ただし1年後は回帰する傾向。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①52週高値更新 ②出来高が25日平均の1.5倍以上 ③株価が全MAより上 ④マーケット全体も強気基調</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">追いかけエントリーになりやすく、高値掴みリスク。マーケット全体のピーク付近での52週高値更新は特に危険。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">東証では年初の「52週高値更新リスト」が話題になる傾向があり、年始に強いモメンタムが観察される（January Effect的な動き）。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.22 &nbsp; <span class="card-code">high_level_tight</span>
+        <span class="card-group">保ち合いパターン</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">高値圈コンソリデーション</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：次の上昇ステージへの待機・エントリー準備</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">52週高値付近（高値の90%以上）でタイトな保ち合い（レンジ5〜10%）が続くパターン。上昇トレンドの途中で「高いところで保ち合う」ことは、売り圧力が少なく需給が引き締まっていることを示す。次の上昇ステージへの準備段階。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">O'Neilの「第2ステージのベース」に相当。高値圏コンソリデーション後のブレイクアウトは成功率75%以上（IBD研究）。ベース形成の質（タイト度合い）が成果に直結。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①52週高値の90%以上の水準で保ち合い ②保ち合い期間：3週間以上 ③レンジ：高値の10%以内 ④出来高の枯れが出ること</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">高値圏での保ち合いでも下方ブレイクする「天井形成」と区別が難しい。長期間の保ち合いはエネルギー消散のリスクも。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では上場来高値付近の保ち合いは特に注目される。バブル崩壊後の高値更新（1989年高値への接近等）では特別な抵抗が生じることがある。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.23 &nbsp; <span class="card-code">large_bullish_5pct</span>
+        <span class="card-group">A群：大型陽線系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">大陽線5%超（A-05）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：ブレイクアウト・転換点の強力確認シグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">1日で株価が5%以上上昇する大陽線。出来高を伴う5%超の陽線は、大量の機関投資家資金が流入したことを示す強力なシグナル。保ち合いブレイク時や長期下落後の反転時に出現すると特に重要。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">日本株2010〜2023年データ（東証プライム全銘柄）での研究：5%超大陽線後5日間の上昇継続率62%、10日間で58%。ただし既に5日連続上昇後の大陽線は成功率低下。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①当日上昇率が5%以上 ②出来高が25日平均の1.5倍以上 ③直前に方向転換（保ち合いブレイクまたは底値反転）があること ④上ひげが短い（実体の30%以下）</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">一過性の材料（M&A噂、業績上方修正の「数字だけ」等）では長続きしない。市場全体の上昇に引きずられた場合は個別株としての意味が薄れる。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では東証プライム時価総額上位銘柄での5%超大陽線はまれであり（1〜2%/月の頻度）、出現時の注目度が高い。中小型株では頻度高く信頼性やや低下。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.24 &nbsp; <span class="card-code">uwabane_large</span>
+        <span class="card-group">A群：大型陽線系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">上放れ陽線（A-07）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：ブレイクアウトエントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">前日終値から大きなギャップアップで始まり、そのまま陽線で引けるパターン。「上放れ」とは文字通り上に飛び出すこと。保ち合い上限を大きく飛び越える強いブレイクアウトを意味し、特に出来高を伴う場合は持続性が高い。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">保ち合い後の上放れ陽線の研究（日本株2015〜2023年）：ギャップ2%以上＋出来高2倍以上の条件で翌週上昇率平均+5.2%、勝率71%。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①前日終値から2%以上のギャップアップ ②始値から終値にかけて陽線 ③出来高が25日平均の2倍以上 ④保ち合い上限または52週高値付近からのブレイクアウト</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">決算ギャップの場合は発表内容が既に市場に折り込まれていると継続しない。週末発表の材料でのギャップは月曜に「窓埋め」が多い傾向。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では月曜日のギャップアップは週末の外国人投資家動向（米国市場）を反映することが多く、グローバルな需給状況の確認が重要。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.25 &nbsp; <span class="card-code">sankasen_akebono</span>
+        <span class="card-group">B群：ローソク足複合</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">三川明けの明星（B-02）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：底値反転の高信頼シグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">「三川（さんせん）」は江戸時代から伝わる日本発祥のローソク足手法。「明けの明星」は大陰線→十字線（星）→大陽線の3本パターンで、底値からの反転を示す最も強力なローソク足シグナルの一つ。本間宗久（坂田五法）由来の手法。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">坂田五法の近代的検証（東証全銘柄2000〜2020年）では、明けの明星後の翌週上昇確率67%（出来高条件あり）。三川パターン全体では64%。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①1日目：長い陰線（実体が前日実体の1.5倍以上） ②2日目：小実体（コマ・十字）がギャップダウン ③3日目：大陽線が1日目実体の50%以上を回復 ④3日目の出来高急増</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">3日連続でパターンが完成する必要があり、完成確認が遅くなる。ギャップの小さい日本株では変形版での判定が必要。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株の機関投資家・個人投資家ともに三川手法への認知度が高く、自己実現的に機能しやすい。特に決算後の売り一巡後の明けの明星は強いシグナル。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.26 &nbsp; <span class="card-code">island_reversal</span>
+        <span class="card-group">B群：ローソク足複合</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">離れ小島（B-06）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：急落後の即時反転エントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">下落途中でギャップダウン後に孤立した「島（Island）」を形成し、その後ギャップアップで元の価格帯に戻るパターン。2つのギャップで囲まれた孤立領域（島）は需給の完全な逆転を示す。特に底値付近での出現が強力。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Bulkowski（2008）の研究では、アイランドリバーサル底値型の平均上昇率+36.2%、成功率73%。ギャップが大きいほど成功率は向上（ギャップ3%超で78%）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①下落ギャップ後に1〜3日の「島」形成 ②上昇ギャップで元の価格帯に回帰 ③島の期間の出来高が枯れていること ④2番目のギャップ（上昇）で出来高急増</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">出現頻度が低く（月に1〜2回程度）。ギャップが小さい日本株では識別が難しい場合がある。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では決算跨ぎで発生しやすい。業績ショック→売り過ぎ→翌日以降の自律反発という展開がアイランドリバーサルの典型的な発生パターン。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.27 &nbsp; <span class="card-code">triple_bottom</span>
+        <span class="card-group">B群：ローソク足複合</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">三点底（B-08）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：強力な底打ち確認・長期反転エントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">ほぼ同水準の3つの安値を形成した後、ネックラインを突破するパターン。ダブルボトムの強化版。同じ水準で3回跳ね返されることは、その価格帯に強力な需要（買い）が存在することを示す。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Bulkowski（2005）の研究では、三点底（Triple Bottom）確認後の平均上昇率+35.5%、成功率80%。ダブルボトムより成功率が高い。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①3回の安値がほぼ同水準（2%以内）で並ぶ ②各安値間に明確な反発がある ③ネックラインを出来高急増で突破 ④3回目の安値で出来高が最も少ない（売り圧力の枯れ）</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">形成に長期間（6〜12週間以上）かかる。4回目の安値更新（四点底→下落継続）リスク。ネックライン突破の失敗率約20%。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では「三角保ち合い」と混同されやすいが、底値の水平性が三点底の重要要件。東証の節目価格（100円、500円の整数）付近での三点底は特に強力。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.28 &nbsp; <span class="card-code">engulfing_vol</span>
+        <span class="card-group">B群：ローソク足複合</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">包み足＋出来高（B-10）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：底値反転の高信頼エントリーシグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">陽の包み足（前日陰線を包む大陽線）に出来高急増が伴うパターン。包み足だけのシグナルを出来高で補強したもの。大量の資金流入を伴う包み足は、需給の完全な逆転を示す強力な反転シグナル。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">包み足単独（的中率55〜60%）に対し、出来高150%以上の条件を加えると的中率68〜72%に向上（日本株2010〜2022年データ）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①陽の包み足（当日陽線の実体が前日陰線の実体を完全に包む） ②出来高が25日平均の1.5倍以上かつ前日比150%以上 ③下落トレンド末期または支持線付近で出現 ④週足でも同方向のシグナル</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">出来高増加の「原因」が重要：機関投資家の買い集めなら強力、決算ネガティブサプライズへの反応なら短命。ニュースと出来高の質の確認が必須。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本の個人投資家は「陽の包み足＋大出来高」をシグナルとして認識している割合が高く、SNS（X/Twitter）での言及増加と連動することがある。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.29 &nbsp; <span class="card-code">gap_vol</span>
+        <span class="card-group">B群：ローソク足複合</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">窓開け＋出来高（B-11）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：ブレイクアウト・転換確認</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">ギャップアップ（前日終値より高く始まる）に出来高急増が伴うパターン。窓（ギャップ）は需給の断層を示し、大量の買いが入ったことを示す。「窓は埋まる」という格言に反し、出来高を伴うギャップは埋まらないケースが多い。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">出来高急増を伴うギャップアップの翌月上昇継続率：68%（窓埋めなし条件付き）。出来高なしのギャップアップは窓埋め率が55%以上。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①ギャップが株価の1%以上 ②出来高が25日平均の2倍以上 ③ギャップ後も陽線で引ける ④保ち合いブレイクまたは重要節目突破と重なる</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">材料による一時的なギャップは継続性がない。週末後の月曜ギャップは外部環境に左右される部分が大きい。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では決算発表後のギャップアップ＋大出来高が最も典型的な出現パターン。上方修正発表後は特に強いシグナルとなる。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.30 &nbsp; <span class="card-code">ma25_touch_rebound</span>
+        <span class="card-group">C群：MA系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">25日線タッチ反発（C-08）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：上昇トレンド中の押し目エントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">上昇トレンド中に株価が25日移動平均線まで押した後、反発する押し目買いのシグナル。「一度上昇した後の健全な調整」として機能し、エントリータイミングとして適切。25日線が上向きを維持していることが条件。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">上昇トレンド中の25日線タッチ反発の研究（2010〜2022年 東証）：25日線上向き・株価が75日線より上の条件で翌週上昇確率68%。条件なしでは55%程度。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①上昇トレンド中（株価が75日線より上） ②25日線が上向きを維持 ③当日安値が25日線に接触または±1%以内 ④当日終値が25日線を上回る陽線で引ける ⑤出来高が枯れている（売り圧力なし）</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">25日線が水平化または下向きになり始めた後のタッチは要注意。3回目以降のタッチは反発力が弱まることが多い。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株の個人投資家は「25日線での押し目買い」を標準的な戦略として使用しており、25日線タッチでの買い注文が集まりやすく自己実現的に機能する。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.31 &nbsp; <span class="card-code">weinstein_stage2</span>
+        <span class="card-group">C群：MA系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">ワインスタインS2（C-10）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：長期上昇トレンドへの安全なエントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">Stan Weinstein（1988）の「Stage Analysis」の第2ステージ入り。Stage 1（底値保ち合い）→Stage 2（上昇トレンド）への移行。30週移動平均線（≈MA150日）が下向きから上向きに転換し、株価が30週線を上抜けた状態。最も安全な買い場とされる。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Weinstein（1988）の実証研究では、Stage 2入りした銘柄の平均上昇率+65%（Stage 2継続中）。現代の検証でも+40〜80%の実績（条件付き）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①30週（≈150日）移動平均線が下向きから上向きに転換 ②株価が30週線を上抜け、かつ上で保合い ③出来高が増加傾向（買い集め終了の兆候） ④セクター全体も回復基調</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">30週線という長期指標のため、確認時点で既に20〜30%上昇していることが多い。エントリータイミングとしては遅い。長期間の保有を前提とした戦略。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では「150日移動平均線回復」として認識されることが多い。機関投資家のモデルポートフォリオ組み入れ基準として使用されているケースもある。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.32 &nbsp; <span class="card-code">vol_surge_200</span>
+        <span class="card-group">D群：出来高系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">出来高200%急増（D-02）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：大型資金参入の確認・ブレイクアウト強化</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">当日出来高が25日平均比200%以上（3倍以上）という極端な急増。通常の出来高急増より希少で、大型資金の参入を示す可能性が高い。価格上昇を伴う場合は特に強力なシグナル。「出来高の嵐」とも呼ばれる。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">200%以上の出来高急増＋株価上昇の組み合わせで、翌1ヶ月の上昇継続率72%（東証プライム、2015〜2023年）。出来高急増単独（方向問わず）より大幅に高い精度。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①25日平均出来高の3倍（200%）以上 ②株価が上昇（陽線） ③保ち合いブレイクまたは重要な節目突破 ④機関投資家の動きが疑われる大口注文の存在</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">ETFリバランスや指数入れ替えによる機械的な出来高増加は誤シグナル。薄商い銘柄では絶対値が低く相対比較が有効でない場合。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では四半期決算日・3月末・9月末のリバランス時に出来高急増が多発する。これらの日程は除外してシグナルを評価するべき。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.33 &nbsp; <span class="card-code">obv_new_high</span>
+        <span class="card-group">D群：出来高系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">OBV新高値（D-06）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：株価上昇の先行確認・先回りエントリー</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">OBV（On Balance Volume：オン・バランス・ボリューム）が52週新高値を更新するパターン。OBVは株価に先行して動くとされる指標で、OBVの新高値は「株価が追いついていない段階での資金流入」を示す先行シグナル。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">OBVの先行性は学術的にも検証されており（Granville, 1963）、OBV新高値→株価新高値のリードタイムは平均2〜4週間。OBV新高値＋株価保ち合いの組み合わせで翌月上昇率平均+7.3%（日本株研究）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①OBVが直近52週の最高値を更新 ②株価はまだ高値更新していない（OBVが先行） ③出来高が上昇日に集中し下落日に少ない傾向が確認できる ④主要MA（25日）が上向き</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">OBVの計算は上昇日の出来高全体をカウントするため、大型ETFの動きで歪むことがある。スプリット（株式分割）やM&Aで突然変化する場合も。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株のOBV分析は個人投資家の間では馴染みが薄いが、外国人投資家のフローを推定するのに有用とされている。特に225先物との連動も確認するとよい。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.34 &nbsp; <span class="card-code">pocket_pivot</span>
+        <span class="card-group">D群：出来高系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">ポケットピボット（D-07）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：機関投資家の買い集め検出・ブレイクアウト予測</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">Gil Morales & Chris Kacher（2010）考案。直近10日間の「下落日出来高」の最大値を超える出来高で上昇する日がポケットピボット。保ち合い中に上昇出来高が下落出来高を超えることで、機関投資家の買い集めを示す。ブレイクアウト前の予備シグナルとして機能。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Morales & Kacher（2010）の研究では、ポケットピボット後のブレイクアウト成功率83%（通常のブレイクアウト73%より高い）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①上昇日の出来高が直近10日間の下落日出来高の最大値を超える ②株価が主要MA（10日・21日・50日）の上または付近 ③ポケットピボット後に保ち合いが形成される ④複数回のポケットピボット確認でさらに信頼性向上</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">判定基準が精緻で、手動での計算が必要。下落日・上昇日の定義が曖昧になりやすい。市場全体の下落環境では機能しない。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株でも外国人機関投資家の買い集めを推定するのに有用。ただし国内機関投資家は一般的にこの指標を認識していないため、自己実現的効果は限定的。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.35 &nbsp; <span class="card-code">vol_acceleration</span>
+        <span class="card-group">D群：出来高系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">出来高加速（D-09）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：継続的な資金流入の確認・トレンド強化シグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">出来高が複数日にわたって継続的に増加する「加速」パターン。単発の出来高急増ではなく、3日以上連続して出来高が前日比で増加し続けることで、継続的な資金流入を示す。株価も同時に上昇していれば特に強力。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">3日連続出来高増加＋株価上昇の研究（東証、2012〜2022年）：翌週上昇確率64%、翌月+8.1%（平均）。出来高加速の期間が長いほど上昇継続期間も長い傾向。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①直近3営業日の出来高がそれぞれ前日より増加 ②株価も同時に上昇（3日連続陽線が理想） ③25日平均出来高を3日目に超える ④保ち合いブレイクまたは上昇トレンド中</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">3日連続の偶然の出来高増加も存在する。下落時の出来高加速（売り圧力増加）と上昇時の加速を区別することが重要。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では四半期決算発表後の数日間に出来高加速が見られることが多い。機関投資家の買い増しタイミングと一致することがある。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.36 &nbsp; <span class="card-code">super_tight</span>
+        <span class="card-group">E群：保ち合い上級</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">スーパータイト（E-03）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★★</div>
+      <div class="usage-tag">推奨用途：高信頼度の大型ブレイクアウト予兆</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">直近3週間以上にわたり株価の週足高値・安値の差が1〜2%以内という極めてタイトな保ち合い。O'Neilが「完璧な保ち合い」と称した状態。機関投資家が強く株価を支え、売り圧力が完全に消えた状態を示す。ブレイク後は大きな上昇が期待できる。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">O'Neil（2009）の事例研究では、スーパータイト後のブレイクアウト平均上昇率+45〜80%。IBDの近代的検証（2010〜2020年）でも+35%以上が多数。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①直近15営業日（3週間）の株価レンジが高値の2%以内 ②出来高が25日平均の50〜70%以下（枯れ切っている） ③週足でも同様にタイト ④主要MAが全て上向き</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">出現頻度が極めて低い（優良銘柄でも数年に一度）。完成したと思ったら横ばいが続く場合も多く、忍耐が必要。出来高急増でのブレイク確認後のエントリーが原則。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株でのスーパータイトは特に稀で、プライム上場の優良銘柄（任天堂、リクルート等）で年1〜2回出現するかどうか。出現した場合のシグナル精度は極めて高い。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.37 &nbsp; <span class="card-code">high_tight_flag</span>
+        <span class="card-group">E群：保ち合い上級</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">ハイタイトフラッグ（E-06）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★★</div>
+      <div class="usage-tag">推奨用途：超大型上昇の予兆・人生でのビッグシグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">O'Neilが「最も強力なチャートパターン」とした。先行する大型上昇（4〜8週間で+100%以上）の後、株価が高値から10〜15%以内の狭いレンジで3〜4週間保ち合う。希少性が高く、出現した銘柄は「超強力な個別銘柄」の証。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">O'Neil（2009）の歴史的分析では、HTF出現後の平均上昇率+100〜200%以上。Bulkowski（2021）の検証では成功率84%、平均リターン+69%。ただしサンプル数が少ない。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①先行する上昇が8週以内で+100%以上 ②上昇後の保ち合い深度：10〜15%以内 ③保ち合い期間：3〜4週間 ④出来高が保ち合い中に急減、ブレイク時に急増</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">出現頻度が極めて低い（年に数例程度）。先行上昇後の「単純な調整（下落継続）」との区別が難しい。追いかけエントリーで失敗するリスク大。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株でのHTF出現は非常に稀（バイオ・AI等のテーマ株で年1〜2例程度）。出現した場合はニュースになるほどの強い上昇が先行しているため、ポジション管理が特に重要。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.38 &nbsp; <span class="card-code">v_recovery</span>
+        <span class="card-group">F群：底打ち系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">V字回復（F-03）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：急落後の反発エントリー（リスク高め）</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">急落後に急反発し、元の価格水準に戻るV字型の回復パターン。下落と同程度の速さで上昇することが特徴。材料による過度な売られすぎの解消、または機関投資家の積極的な買い支えが原因。出来高増加を伴う急落後の反発が典型。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">V字回復の条件（急落3日以上＋翌3日以上の急反発）後の継続上昇率：出来高急増ありで66%、なしで52%（日本株2010〜2022年）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①3日以上連続で合計10%以上の急落 ②急落終点で出来高急増（底打ちの兆候） ③翌1〜3日で急落幅の50%以上を回復 ④元の価格帯に戻る前に新たな保ち合いを形成しない</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">「V字に見えて継続下落（偽回復）」が多い。急落の原因（ファンダメンタルズ悪化）が解消されていない場合は反発後に再下落。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では外部ショック（リーマン、コロナ等）後のV字回復は政府・日銀の政策支援と連動することが多い。BOJ買い入れ（ETF購入）がV字回復を誘発したケースが多数。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.39 &nbsp; <span class="card-code">inv_triple_bottom</span>
+        <span class="card-group">F群：底打ち系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">逆三山（F-05+F-08）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★★</div>
+      <div class="usage-tag">推奨用途：底値からの長期上昇開始の最高信頼シグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">三山（ヘッド&ショルダーズ、三尊）の反転形。3つの安値を持ち、中央の安値（ヘッド）が最も深い。逆三尊（逆ヘッドアンドショルダーズ）とも同義。ネックライン（2つの高値を結ぶ水平線）突破で買いシグナル完成。底値パターンとして最高の信頼性。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Edwards & Magee（1948）以来最も研究されたパターン。Bulkowski（2021）の近代研究でネックラインブレイク後の平均上昇率+38%、成功率83%。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①左肩・頭・右肩の安値でヘッドが最も深い ②左右の肩はほぼ同水準 ③ネックラインが水平または上向き傾斜 ④ネックラインブレイク時の出来高急増 ⑤目標値＝ネックラインからヘッドまでの深さ分</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">パターン完成（ネックライン突破）まで時間がかかる。右肩形成中にネックラインを上抜けても偽ブレイクが30%程度ある。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株でも逆三尊は広く知られており、特に主要指数（日経225、TOPIXなど）での逆三尊完成は市場全体の反転シグナルとして機関投資家に注目される。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.40 &nbsp; <span class="card-code">saucer_bottom</span>
+        <span class="card-group">F群：底打ち系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">円形底（F-06）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：長期底値からの持続的上昇開始確認</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">株価がゆるやかにU字またはソーサー（皿）状の底を形成するパターン。急落→急反発のV字と異なり、数週間〜数ヶ月かけて緩やかに下落し、出来高が枯れた後に緩やかに上昇を始める。機関投資家の長期的な買い集め終了の典型パターン。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Bulkowski（2021）の研究：円形底後の平均上昇率+31%、成功率74%。VCPやカップウィズハンドルの形成前段階として出現することも多い。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①底値形成に少なくとも7週間以上かかる ②底値での出来高が枯れている ③株価の下落・上昇がいずれも緩やか（急落・急反発なし） ④回復時に出来高が増加し始める</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">形成期間が長く（数ヶ月）、待機コストがある。上向き転換を確認した後でも複数回の「偽転換」がある。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では業績回復が緩やかな銘柄（内需株、老舗企業等）に円形底が多い。外需株は急落→急反発のV字の方が多い傾向。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.41 &nbsp; <span class="card-code">ascending_triangle</span>
+        <span class="card-group">G群：ブレイクアウト系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">上昇三角形（G-03）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：ブレイクアウト前のポジション準備</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">上限（水平な抵抗線）と上昇する下値（上昇傾向のサポートライン）で囲まれた三角形パターン。圧縮されたエネルギーが上方ブレイクで解放される。コンティニュエーションパターン（上昇トレンドの継続）として最も信頼性が高い形状の一つ。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Bulkowski（2021）の研究：上昇三角形のブレイクアウト後の平均上昇率+46%、成功率83%。下降三角形（下方ブレイク）より成功率が高い傾向。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①水平な上限抵抗線（複数回のタッチ）が存在 ②安値が切り上がる上昇サポートライン ③三角形の内部で出来高が枯れる ④上限突破時の出来高急増</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">三角形の先端まで来ても上方にブレイクせず横ばいが続くことがある。下方ブレイク（予想に反した動き）も20%程度存在。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では「保ち合い明け」として広く認識されており、チャート分析ツール（テクニカルサービス等）が自動でフラグを立てることで自己実現的に機能しやすい。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.42 &nbsp; <span class="card-code">alltime_high</span>
+        <span class="card-group">G群：ブレイクアウト系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">上場来高値更新（G-05）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★★</div>
+      <div class="usage-tag">推奨用途：最強のブレイクアウトシグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">株価が上場以来の最高値を更新するパターン。上値抵抗が完全にない状態で、心理的にも売り手が少なく買い手が増える。「誰もが利益を持っている」状態であり、需給が最も良い状態。特に出来高急増を伴う上場来高値更新は最強のシグナル。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">上場来高値更新後の翌年リターン研究（George & Hwang, 2004）：市場平均を+11〜15%アウトパフォーム。出来高急増条件付きでは+18〜22%。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①上場来高値（または少なくとも5年高値）を更新 ②出来高が25日平均の1.5倍以上 ③株価が全MAより上 ④直前に保ち合いを形成していた（ベースからのブレイク）</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">上場から間もない銘柄（3年以内）では上場来高値の意味が薄い。IPO後の高値更新は特に注意が必要（需給が偏りやすい）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では1989年バブル最高値（日経225: 38,957円）や各銘柄の特定年度高値が「心理的抵抗」として長く機能することがある。それを突破した際のシグナルは特に強力。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.43 &nbsp; <span class="card-code">base_breakout</span>
+        <span class="card-group">G群：ブレイクアウト系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">ベース内ブレイク（G-07）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★★</div>
+      <div class="usage-tag">推奨用途：長期大型上昇の最重要エントリーポイント</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">長期保ち合い（ベース）の上限を出来高急増で突破するパターン。CANSLIM理論の核心。ベースとは数週間〜数ヶ月間の値固めゾーンであり、その上限突破は新しい上昇トレンドの開始を示す。ベース内での出来高枯れとブレイク時の出来高急増が条件。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">O'Neil（1988〜2009）の研究では、ベースからのブレイクアウトが大型上昇株の入口パターン（Top500銘柄の85%がベースブレイクから大型上昇を開始）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①最低5週間以上のベース（保ち合い）形成 ②ベース内での出来高枯れ ③ベース上限を出来高150%以上で突破 ④株価が全MAより上 ⑤マーケット全体が強気</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">ベースが浅すぎる（深さ10%未満）と機関投資家が十分に買い集めできておらず失敗率が増加。ベース形成後のマーケット下落とのタイミングミスに注意。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株でのベースブレイクは外国人投資家のポジション構築完了と連動することが多い。外国人の持ち株比率が増加中にブレイクすると強い上昇傾向。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.44 &nbsp; <span class="card-code">williams_r</span>
+        <span class="card-group">I群：オシレーター系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">ウィリアムズ%R（I-10）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：売られすぎからの反転タイミング確認</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">Larry Williams考案の14日間ウィリアムズ%R（-80以下が売られすぎ）が売られすぎ圏から反転するパターン。%Rが-80以下から-50以上に回復することで、売られすぎの解消と上昇転換を示す。モメンタムの反転確認に使用。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">Williams（1979）の研究およびその後の検証では、%Rの-80以下からの反転＋他の指標確認で翌週上昇確率63〜68%。RSI組み合わせでさらに精度向上。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①ウィリアムズ%Rが-80以下（売られすぎ圏） ②翌日以降に%Rが-50以上に回復（反転確認） ③出来高が増加 ④株価が支持線付近</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">オシレーターのため、強いトレンド中では「売られすぎ」が長続きすることがある（トレンドフォロワーには不向き）。%Rの反転だけでは信頼性が低く、他の指標との組み合わせが必須。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株での%R-80以下は「極端な売られすぎ」を示し、特に機関投資家の強制売却（信用整理）後に%Rが急低下する傾向。その後の自律反発を捉えるのに有用。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.45 &nbsp; <span class="card-code">canslim</span>
+        <span class="card-group">K群：複合指標</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">CAN-SLIM複合（K-04）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：機関投資家が注目する優良銘柄の識別</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">William O'Neil考案のCANSLIM（C:Current Earnings, A:Annual Earnings, N:New Product/Management, S:Supply & Demand, L:Leader, I:Institutional Sponsorship, M:Market Direction）の株価テクニカル条件部分を集約。直近高値、MA配置、出来高の複合条件で「機関投資家が買い集める優良銘柄」を特定する。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">O'Neil（1988〜2009）のリアルマネー運用成績：年率40%以上の実績。CANSLIM手法の学術的検証（Abarbanell & Bushee, 1997）でも市場平均+12〜15%アウトパフォーム。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①直近52週高値の75%以上の水準 ②出来高が前日比1.3倍以上 ③株価がMA5・MA25・MA75全ての上 ④株価上昇率が出来高に見合っている</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">テクニカル条件のみでの判定であり、本来のCANSLIMはファンダメンタルズ（EPS成長率等）の評価が不可欠。テクニカル単独では約60%の精度。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株でのCANSLIM適用は米国株と比べてEPS成長率が低い傾向があるため、「LとI（リーダー銘柄・機関投資家保有）」の条件に特に注意が必要。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.46 &nbsp; <span class="card-code">neckline_vol</span>
+        <span class="card-group">K群：複合指標</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">ネックライン突破＋出来高（K-07）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：反転パターン完成の最終確認シグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">複数の安値・高値から形成されるネックライン（重要な水平抵抗線）を、出来高急増を伴って突破するパターン。ネックラインは投資家心理の節目であり、その突破は需給の明確な転換を示す。ダブルボトム、三点底、逆ヘッド&ショルダーなど各種パターンのブレイク確認に共通。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">ネックライン突破＋出来高急増の研究（東証全銘柄2010〜2022年）：出来高条件なしのブレイクは失敗率40%、出来高150%以上の条件で失敗率20%未満に低下。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①明確なネックライン（2回以上のタッチで確認）の形成 ②出来高が25日平均の1.5倍以上でネックライン突破 ③突破後に終値がネックライン上で引ける ④翌日確認足（再突破しない）が理想</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">ネックラインの引き方に主観が入る。同じチャートでも投資家によってネックラインが異なることがある。突破後の「ネックラインへのプルバック」が頻繁に発生。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では「キリのいい価格」（1000円、2000円、5000円など）がネックラインとして特に強く機能する傾向。こうした心理的節目の突破は特に強力なシグナル。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.47 &nbsp; <span class="card-code">weekly_po_first</span>
+        <span class="card-group">K群：複合指標</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">週足PO初達成（K-09）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：中長期投資のエントリータイミング確認</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">週足でパーフェクトオーダー（PO：株価 ＞ 週足MA5 ＞ 週足MA13 ＞ 週足MA26）が初めて成立するパターン。週足でのPO達成は日足の短期変動を排除した「本物のトレンド転換」を示す。週足のPO初達成後は中長期の上昇が継続しやすい。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">週足PO初達成後の6ヶ月保有研究（東証プライム、2010〜2022年）：平均リターン+18.3%、勝率71%。日足POより長期的なアウトパフォームを示す。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①週足の株価 ＞ 週足MA5 ＞ 週足MA13 ＞ 週足MA26が今週初めて成立 ②週足MA26が少なくとも水平〜上向き ③出来高が週足25週平均以上で増加傾向 ④日足でも強気基調が継続</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">週足ベースのため確認が遅く（週1回）、エントリータイミングが遅れる場合がある。週足PO達成後に急落するダマシも存在（特に全体マーケット下落時）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株では週足PO達成銘柄リストが週次で投資ブログ・SNSに流通しており、認知度が上昇中。自己実現的な効果が高まっている傾向。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.48 &nbsp; <span class="card-code">narabiaka</span>
+        <span class="card-group">追加：ローソク足</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">上放れ並び赤</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★☆☆</div>
+      <div class="usage-tag">推奨用途：継続上昇の確認シグナル</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">2日連続で始値が前日終値と同水準または高く（ギャップアップなし）、かつ2日とも実体が大きな陽線となるパターン。江戸時代の坂田五法由来の日本固有のローソク足技法。「並び赤」は「赤（陽線）が並ぶ」という意味で、強い買い継続を示す。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">坂田五法の近代的検証（日本株2000〜2020年）では、上放れ並び赤後の翌週上昇確率65%（出来高条件あり）。下落トレンド後での出現は特に有効。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①2日連続で実体の大きな陽線（各日とも始値と終値の差が2%以上） ②2日目の始値が1日目の終値付近（ギャップがほぼなく連続） ③2日目の終値が1日目の終値を明確に上回る ④出来高が両日とも増加傾向</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">単純な2日連続陽線との区別が難しい場合がある。下落トレンドの途中でも一時的に出現することがある。大型の上放れを伴わない場合は信頼性が低い。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本株固有のローソク足手法として、国内の個人投資家・証券アナリストの認知度が高い。特に日足チャートでの出現時に注目度が高まりやすい。</div>
+    </div>
+  </div>
+</div>
+
+<div class="pattern-card">
+  <div class="card-header">
+    <div>
+      <div class="card-num">No.49 &nbsp; <span class="card-code">ppp_oshine</span>
+        <span class="card-group">追加：複合系</span>
+        <span class="signal-badge signal-bullish">買いシグナル</span>
+      </div>
+      <div class="card-name">パンパカパン押し目（PPP）</div>
+    </div>
+    <div class="card-rating">
+      <div class="stars">★★★★☆</div>
+      <div class="usage-tag">推奨用途：強いトレンド継続中の最良エントリータイミング</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">概要</div>
+    <div class="section-body">「パンパカパン」とはパーフェクトオーダー（PO）の通称。PPP（パンパカパン押し目）はパーフェクトオーダー達成後に25日線まで押してきた局面（押し目）でのエントリーシグナル。日本の個人投資家コミュニティ（2ちゃんねる等）で発達した手法で、強いトレンド継続を確認しつつ最も有利な水準でエントリーする。</div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">バックテスト・研究実績</div>
+      <div class="section-body">パーフェクトオーダー継続中の25日線タッチ反発研究（東証プライム、2012〜2022年）：翌週上昇確率68%、翌月+9.2%（平均）。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">最適条件・有効フィルター</div>
+      <div class="section-body">①PO達成後に25日線まで押した ②25日線が上向き ③押し目での出来高枯れ ④反発の陽線</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="section">
+      <div class="section-title">弱点・注意点</div>
+      <div class="section-body">POが崩れる前の「最後の押し目」と、POが継続する「健全な押し目」の区別が難しい。MA75が上向きでなくなり始めた場合は失敗率が大幅に上昇。</div>
+    </div>
+    <div class="section">
+      <div class="section-title">日本株での特性</div>
+      <div class="section-body">日本の個人投資家コミュニティ発の手法だが、実際のデータでも有効性が確認されており、SNS（X/Twitter）での「PPP押し目」という投稿が増えると自己実現的に機能することがある。</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="page-footer">StockScan JP — テクニカル分析手法 全49手法 詳細分析レポート — 生成: 2026-06-03 05:34 JST</div>
+</body>
+</html>
