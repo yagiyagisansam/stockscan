@@ -1181,27 +1181,6 @@ def chk_narabiaka(df: pd.DataFrame) -> bool:
     return bool(d2['open'] > d0['high'])
 
 
-def chk_ppp(df: pd.DataFrame) -> bool:
-    """パンパカパン（PPP）初達成（前日非PO→当日PO初転換、全MA上向き）"""
-    if len(df) < 80:
-        return False
-    c = df.iloc[-1]
-    p = df.iloc[-2]
-    if any(pd.isna([c['ma5'], c['ma25'], c['ma75']])):
-        return False
-    if not (c['close'] > c['ma5'] > c['ma25'] > c['ma75']):
-        return False
-    if df['ma5'].iloc[-1] <= df['ma5'].iloc[-5]:
-        return False
-    if df['ma25'].iloc[-1] <= df['ma25'].iloc[-5]:
-        return False
-    if df['ma75'].iloc[-1] <= df['ma75'].iloc[-5]:
-        return False
-    if any(pd.isna([p['ma5'], p['ma25'], p['ma75']])):
-        return False
-    prev_po = p['close'] > p['ma5'] > p['ma25'] > p['ma75']
-    return not prev_po
-
 
 def chk_ppp_oshine(df: pd.DataFrame) -> bool:
     """パンパカパン押し目（PPP圏で5MA一時下向き→25MAを割らず反転上昇）"""
@@ -1311,7 +1290,6 @@ CHECKS: list[tuple[str, str, str, bool]] = [
 
     # ── 追加手法（単体）──────────────────────────────────────
     ('narabiaka',            '上放れ並び赤',                     'chk_narabiaka',             True),
-    ('ppp',                  'パンパカパン+押し目（PPP）',         'chk_ppp',                   True),
     ('ppp_oshine',           'パンパカパン押し目（PPP）',          'chk_ppp_oshine',            True),
 ]
 
