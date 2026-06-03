@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>テクニカル分析手法 全49手法 詳細分析レポート</title>
+<title>テクニカル分析手法 全44手法 詳細分析レポート</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -171,11 +171,11 @@
 
 <div class="cover">
   <div class="card-num">TECHNICAL ANALYSIS REPORT</div>
-  <h1>テクニカル分析手法<br>全49手法 詳細分析レポート</h1>
+  <h1>テクニカル分析手法<br>全44手法 詳細分析レポート</h1>
   <div class="subtitle">StockScan JP — 実装手法 完全解説版</div>
-  <div class="count-badge">全 49 手法収録</div>
+  <div class="count-badge">全 44 手法収録</div>
   <div class="meta">
-    <p>生成日: 2026-06-03 05:34 JST</p>
+    <p>生成日: 2026-06-03 11:21 JST</p>
     <p>対象市場: 東京証券取引所（東証）</p>
     <p>データソース: yfinance（Yahoo Finance）</p>
     <p>分析期間: 主に直近1年間（一部2年・週足）</p>
@@ -184,7 +184,7 @@
 
 <div class="toc">
   <h2>目次</h2>
-  <div class="toc-group"><div class="toc-group-name">基本ローソク足</div><div class="toc-item"><span class="num">No.01</span><span class="pname">陽の包み足</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.02</span><span class="pname">下ひげ陽線（ハンマー）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.03</span><span class="pname">朝の明星</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.04</span><span class="pname">陽の三兵</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.05</span><span class="pname">窓開け陽線</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">移動平均線</div><div class="toc-item"><span class="num">No.06</span><span class="pname">パーフェクトオーダー</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.07</span><span class="pname">GC 25/75日線</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.08</span><span class="pname">25日線デビュー買い</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.09</span><span class="pname">75日線回復</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.10</span><span class="pname">MA収縮後ブレイク</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.11</span><span class="pname">株価が全MA上</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">出来高</div><div class="toc-item"><span class="num">No.12</span><span class="pname">出来高急増（前日比150%超）</span><span class="stars-small">★★☆☆☆</span></div><div class="toc-item"><span class="num">No.13</span><span class="pname">新高値＋出来高急増</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.14</span><span class="pname">出来高枯れ→急増</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">保ち合いパターン</div><div class="toc-item"><span class="num">No.15</span><span class="pname">VCP（ボラティリティ収縮パターン）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.16</span><span class="pname">カップウィズハンドル</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.17</span><span class="pname">タイト保ち合い</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.19</span><span class="pname">フラッグ・ペナント</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.22</span><span class="pname">高値圈コンソリデーション</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">反転パターン</div><div class="toc-item"><span class="num">No.18</span><span class="pname">ダブルボトム（W底）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.20</span><span class="pname">逆ヘッド&ショルダー</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">モメンタム</div><div class="toc-item"><span class="num">No.21</span><span class="pname">52週新高値</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">A群：大型陽線系</div><div class="toc-item"><span class="num">No.23</span><span class="pname">大陽線5%超（A-05）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.24</span><span class="pname">上放れ陽線（A-07）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">B群：ローソク足複合</div><div class="toc-item"><span class="num">No.25</span><span class="pname">三川明けの明星（B-02）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.26</span><span class="pname">離れ小島（B-06）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.27</span><span class="pname">三点底（B-08）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.28</span><span class="pname">包み足＋出来高（B-10）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.29</span><span class="pname">窓開け＋出来高（B-11）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">C群：MA系</div><div class="toc-item"><span class="num">No.30</span><span class="pname">25日線タッチ反発（C-08）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.31</span><span class="pname">ワインスタインS2（C-10）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">D群：出来高系</div><div class="toc-item"><span class="num">No.32</span><span class="pname">出来高200%急増（D-02）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.33</span><span class="pname">OBV新高値（D-06）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.34</span><span class="pname">ポケットピボット（D-07）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.35</span><span class="pname">出来高加速（D-09）</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">E群：保ち合い上級</div><div class="toc-item"><span class="num">No.36</span><span class="pname">スーパータイト（E-03）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.37</span><span class="pname">ハイタイトフラッグ（E-06）</span><span class="stars-small">★★★★★</span></div></div><div class="toc-group"><div class="toc-group-name">F群：底打ち系</div><div class="toc-item"><span class="num">No.38</span><span class="pname">V字回復（F-03）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.39</span><span class="pname">逆三山（F-05+F-08）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.40</span><span class="pname">円形底（F-06）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">G群：ブレイクアウト系</div><div class="toc-item"><span class="num">No.41</span><span class="pname">上昇三角形（G-03）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.42</span><span class="pname">上場来高値更新（G-05）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.43</span><span class="pname">ベース内ブレイク（G-07）</span><span class="stars-small">★★★★★</span></div></div><div class="toc-group"><div class="toc-group-name">I群：オシレーター系</div><div class="toc-item"><span class="num">No.44</span><span class="pname">ウィリアムズ%R（I-10）</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">K群：複合指標</div><div class="toc-item"><span class="num">No.45</span><span class="pname">CAN-SLIM複合（K-04）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.46</span><span class="pname">ネックライン突破＋出来高（K-07）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.47</span><span class="pname">週足PO初達成（K-09）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">追加：ローソク足</div><div class="toc-item"><span class="num">No.48</span><span class="pname">上放れ並び赤</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">追加：複合系</div><div class="toc-item"><span class="num">No.49</span><span class="pname">パンパカパン押し目（PPP）</span><span class="stars-small">★★★★☆</span></div></div>
+  <div class="toc-group"><div class="toc-group-name">基本ローソク足</div><div class="toc-item"><span class="num">No.01</span><span class="pname">陽の包み足</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.02</span><span class="pname">下ひげ陽線（ハンマー）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.03</span><span class="pname">朝の明星</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.04</span><span class="pname">陽の三兵</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.05</span><span class="pname">窓開け陽線</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">移動平均線</div><div class="toc-item"><span class="num">No.06</span><span class="pname">パーフェクトオーダー</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.07</span><span class="pname">GC 25/75日線</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.08</span><span class="pname">25日線デビュー買い</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.09</span><span class="pname">75日線回復</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.10</span><span class="pname">MA収縮後ブレイク</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.11</span><span class="pname">株価が全MA上</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">出来高</div><div class="toc-item"><span class="num">No.12</span><span class="pname">出来高急増（前日比150%超）</span><span class="stars-small">★★☆☆☆</span></div><div class="toc-item"><span class="num">No.13</span><span class="pname">新高値＋出来高急増</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.14</span><span class="pname">出来高枯れ→急増</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">保ち合いパターン</div><div class="toc-item"><span class="num">No.15</span><span class="pname">VCP（ボラティリティ収縮パターン）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.16</span><span class="pname">カップウィズハンドル</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.17</span><span class="pname">タイト保ち合い</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.19</span><span class="pname">フラッグ・ペナント</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.21</span><span class="pname">高値圈コンソリデーション</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">反転パターン</div><div class="toc-item"><span class="num">No.18</span><span class="pname">ダブルボトム（W底）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.20</span><span class="pname">逆ヘッド&ショルダー</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">A群：大型陽線系</div><div class="toc-item"><span class="num">No.22</span><span class="pname">大陽線5%超（A-05）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.23</span><span class="pname">上放れ陽線（A-07）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">B群：ローソク足複合</div><div class="toc-item"><span class="num">No.24</span><span class="pname">離れ小島（B-06）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.25</span><span class="pname">三点底（B-08）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">C群：MA系</div><div class="toc-item"><span class="num">No.26</span><span class="pname">25日線タッチ反発（C-08）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.27</span><span class="pname">ワインスタインS2（C-10）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">D群：出来高系</div><div class="toc-item"><span class="num">No.28</span><span class="pname">出来高200%急増（D-02）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.29</span><span class="pname">OBV新高値（D-06）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.30</span><span class="pname">ポケットピボット（D-07）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.31</span><span class="pname">出来高加速（D-09）</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">E群：保ち合い上級</div><div class="toc-item"><span class="num">No.32</span><span class="pname">スーパータイト（E-03）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.33</span><span class="pname">ハイタイトフラッグ（E-06）</span><span class="stars-small">★★★★★</span></div></div><div class="toc-group"><div class="toc-group-name">F群：底打ち系</div><div class="toc-item"><span class="num">No.34</span><span class="pname">V字回復（F-03）</span><span class="stars-small">★★★☆☆</span></div><div class="toc-item"><span class="num">No.35</span><span class="pname">円形底（F-06）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">G群：ブレイクアウト系</div><div class="toc-item"><span class="num">No.36</span><span class="pname">上昇三角形（G-03）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.37</span><span class="pname">上場来高値更新（G-05）</span><span class="stars-small">★★★★★</span></div><div class="toc-item"><span class="num">No.38</span><span class="pname">ベース内ブレイク（G-07）</span><span class="stars-small">★★★★★</span></div></div><div class="toc-group"><div class="toc-group-name">I群：オシレーター系</div><div class="toc-item"><span class="num">No.39</span><span class="pname">ウィリアムズ%R（I-10）</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">K群：複合指標</div><div class="toc-item"><span class="num">No.40</span><span class="pname">CAN-SLIM複合（K-04）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.41</span><span class="pname">ネックライン突破＋出来高（K-07）</span><span class="stars-small">★★★★☆</span></div><div class="toc-item"><span class="num">No.42</span><span class="pname">週足PO初達成（K-09）</span><span class="stars-small">★★★★☆</span></div></div><div class="toc-group"><div class="toc-group-name">追加：ローソク足</div><div class="toc-item"><span class="num">No.43</span><span class="pname">上放れ並び赤</span><span class="stars-small">★★★☆☆</span></div></div><div class="toc-group"><div class="toc-group-name">追加：複合系</div><div class="toc-item"><span class="num">No.44</span><span class="pname">パンパカパン押し目（PPP）</span><span class="stars-small">★★★★☆</span></div></div>
 </div>
 
 <div class="content">
@@ -1052,50 +1052,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.21 &nbsp; <span class="card-code">52week_high</span>
-        <span class="card-group">モメンタム</span>
-        <span class="signal-badge signal-bullish">買いシグナル</span>
-      </div>
-      <div class="card-name">52週新高値</div>
-    </div>
-    <div class="card-rating">
-      <div class="stars">★★★☆☆</div>
-      <div class="usage-tag">推奨用途：ブレイクアウトの方向性確認</div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">概要</div>
-    <div class="section-body">直近52週（約1年）の最高値を更新するパターン。52週高値付近では過去の買い手が「やれやれ売り」を出すが、これを吸収して高値更新できた場合は需要の強さを示す。上値抵抗が消えた状態でのさらなる上昇が期待できる。</div>
-  </div>
-
-  <div class="grid2">
-    <div class="section">
-      <div class="section-title">バックテスト・研究実績</div>
-      <div class="section-body">モメンタム投資の根幹。学術研究（Jegadeesh & Titman, 1993）では52週高値付近の株式は直後12ヶ月で市場平均を+7.3%アウトパフォーム。ただし1年後は回帰する傾向。</div>
-    </div>
-    <div class="section">
-      <div class="section-title">最適条件・有効フィルター</div>
-      <div class="section-body">①52週高値更新 ②出来高が25日平均の1.5倍以上 ③株価が全MAより上 ④マーケット全体も強気基調</div>
-    </div>
-  </div>
-
-  <div class="grid2">
-    <div class="section">
-      <div class="section-title">弱点・注意点</div>
-      <div class="section-body">追いかけエントリーになりやすく、高値掴みリスク。マーケット全体のピーク付近での52週高値更新は特に危険。</div>
-    </div>
-    <div class="section">
-      <div class="section-title">日本株での特性</div>
-      <div class="section-body">東証では年初の「52週高値更新リスト」が話題になる傾向があり、年始に強いモメンタムが観察される（January Effect的な動き）。</div>
-    </div>
-  </div>
-</div>
-
-<div class="pattern-card">
-  <div class="card-header">
-    <div>
-      <div class="card-num">No.22 &nbsp; <span class="card-code">high_level_tight</span>
+      <div class="card-num">No.21 &nbsp; <span class="card-code">high_level_tight</span>
         <span class="card-group">保ち合いパターン</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1138,7 +1095,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.23 &nbsp; <span class="card-code">large_bullish_5pct</span>
+      <div class="card-num">No.22 &nbsp; <span class="card-code">large_bullish_5pct</span>
         <span class="card-group">A群：大型陽線系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1181,7 +1138,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.24 &nbsp; <span class="card-code">uwabane_large</span>
+      <div class="card-num">No.23 &nbsp; <span class="card-code">uwabane_large</span>
         <span class="card-group">A群：大型陽線系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1224,50 +1181,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.25 &nbsp; <span class="card-code">sankasen_akebono</span>
-        <span class="card-group">B群：ローソク足複合</span>
-        <span class="signal-badge signal-bullish">買いシグナル</span>
-      </div>
-      <div class="card-name">三川明けの明星（B-02）</div>
-    </div>
-    <div class="card-rating">
-      <div class="stars">★★★★☆</div>
-      <div class="usage-tag">推奨用途：底値反転の高信頼シグナル</div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">概要</div>
-    <div class="section-body">「三川（さんせん）」は江戸時代から伝わる日本発祥のローソク足手法。「明けの明星」は大陰線→十字線（星）→大陽線の3本パターンで、底値からの反転を示す最も強力なローソク足シグナルの一つ。本間宗久（坂田五法）由来の手法。</div>
-  </div>
-
-  <div class="grid2">
-    <div class="section">
-      <div class="section-title">バックテスト・研究実績</div>
-      <div class="section-body">坂田五法の近代的検証（東証全銘柄2000〜2020年）では、明けの明星後の翌週上昇確率67%（出来高条件あり）。三川パターン全体では64%。</div>
-    </div>
-    <div class="section">
-      <div class="section-title">最適条件・有効フィルター</div>
-      <div class="section-body">①1日目：長い陰線（実体が前日実体の1.5倍以上） ②2日目：小実体（コマ・十字）がギャップダウン ③3日目：大陽線が1日目実体の50%以上を回復 ④3日目の出来高急増</div>
-    </div>
-  </div>
-
-  <div class="grid2">
-    <div class="section">
-      <div class="section-title">弱点・注意点</div>
-      <div class="section-body">3日連続でパターンが完成する必要があり、完成確認が遅くなる。ギャップの小さい日本株では変形版での判定が必要。</div>
-    </div>
-    <div class="section">
-      <div class="section-title">日本株での特性</div>
-      <div class="section-body">日本株の機関投資家・個人投資家ともに三川手法への認知度が高く、自己実現的に機能しやすい。特に決算後の売り一巡後の明けの明星は強いシグナル。</div>
-    </div>
-  </div>
-</div>
-
-<div class="pattern-card">
-  <div class="card-header">
-    <div>
-      <div class="card-num">No.26 &nbsp; <span class="card-code">island_reversal</span>
+      <div class="card-num">No.24 &nbsp; <span class="card-code">island_reversal</span>
         <span class="card-group">B群：ローソク足複合</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1310,7 +1224,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.27 &nbsp; <span class="card-code">triple_bottom</span>
+      <div class="card-num">No.25 &nbsp; <span class="card-code">triple_bottom</span>
         <span class="card-group">B群：ローソク足複合</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1353,93 +1267,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.28 &nbsp; <span class="card-code">engulfing_vol</span>
-        <span class="card-group">B群：ローソク足複合</span>
-        <span class="signal-badge signal-bullish">買いシグナル</span>
-      </div>
-      <div class="card-name">包み足＋出来高（B-10）</div>
-    </div>
-    <div class="card-rating">
-      <div class="stars">★★★★☆</div>
-      <div class="usage-tag">推奨用途：底値反転の高信頼エントリーシグナル</div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">概要</div>
-    <div class="section-body">陽の包み足（前日陰線を包む大陽線）に出来高急増が伴うパターン。包み足だけのシグナルを出来高で補強したもの。大量の資金流入を伴う包み足は、需給の完全な逆転を示す強力な反転シグナル。</div>
-  </div>
-
-  <div class="grid2">
-    <div class="section">
-      <div class="section-title">バックテスト・研究実績</div>
-      <div class="section-body">包み足単独（的中率55〜60%）に対し、出来高150%以上の条件を加えると的中率68〜72%に向上（日本株2010〜2022年データ）。</div>
-    </div>
-    <div class="section">
-      <div class="section-title">最適条件・有効フィルター</div>
-      <div class="section-body">①陽の包み足（当日陽線の実体が前日陰線の実体を完全に包む） ②出来高が25日平均の1.5倍以上かつ前日比150%以上 ③下落トレンド末期または支持線付近で出現 ④週足でも同方向のシグナル</div>
-    </div>
-  </div>
-
-  <div class="grid2">
-    <div class="section">
-      <div class="section-title">弱点・注意点</div>
-      <div class="section-body">出来高増加の「原因」が重要：機関投資家の買い集めなら強力、決算ネガティブサプライズへの反応なら短命。ニュースと出来高の質の確認が必須。</div>
-    </div>
-    <div class="section">
-      <div class="section-title">日本株での特性</div>
-      <div class="section-body">日本の個人投資家は「陽の包み足＋大出来高」をシグナルとして認識している割合が高く、SNS（X/Twitter）での言及増加と連動することがある。</div>
-    </div>
-  </div>
-</div>
-
-<div class="pattern-card">
-  <div class="card-header">
-    <div>
-      <div class="card-num">No.29 &nbsp; <span class="card-code">gap_vol</span>
-        <span class="card-group">B群：ローソク足複合</span>
-        <span class="signal-badge signal-bullish">買いシグナル</span>
-      </div>
-      <div class="card-name">窓開け＋出来高（B-11）</div>
-    </div>
-    <div class="card-rating">
-      <div class="stars">★★★★☆</div>
-      <div class="usage-tag">推奨用途：ブレイクアウト・転換確認</div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">概要</div>
-    <div class="section-body">ギャップアップ（前日終値より高く始まる）に出来高急増が伴うパターン。窓（ギャップ）は需給の断層を示し、大量の買いが入ったことを示す。「窓は埋まる」という格言に反し、出来高を伴うギャップは埋まらないケースが多い。</div>
-  </div>
-
-  <div class="grid2">
-    <div class="section">
-      <div class="section-title">バックテスト・研究実績</div>
-      <div class="section-body">出来高急増を伴うギャップアップの翌月上昇継続率：68%（窓埋めなし条件付き）。出来高なしのギャップアップは窓埋め率が55%以上。</div>
-    </div>
-    <div class="section">
-      <div class="section-title">最適条件・有効フィルター</div>
-      <div class="section-body">①ギャップが株価の1%以上 ②出来高が25日平均の2倍以上 ③ギャップ後も陽線で引ける ④保ち合いブレイクまたは重要節目突破と重なる</div>
-    </div>
-  </div>
-
-  <div class="grid2">
-    <div class="section">
-      <div class="section-title">弱点・注意点</div>
-      <div class="section-body">材料による一時的なギャップは継続性がない。週末後の月曜ギャップは外部環境に左右される部分が大きい。</div>
-    </div>
-    <div class="section">
-      <div class="section-title">日本株での特性</div>
-      <div class="section-body">日本株では決算発表後のギャップアップ＋大出来高が最も典型的な出現パターン。上方修正発表後は特に強いシグナルとなる。</div>
-    </div>
-  </div>
-</div>
-
-<div class="pattern-card">
-  <div class="card-header">
-    <div>
-      <div class="card-num">No.30 &nbsp; <span class="card-code">ma25_touch_rebound</span>
+      <div class="card-num">No.26 &nbsp; <span class="card-code">ma25_touch_rebound</span>
         <span class="card-group">C群：MA系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1482,7 +1310,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.31 &nbsp; <span class="card-code">weinstein_stage2</span>
+      <div class="card-num">No.27 &nbsp; <span class="card-code">weinstein_stage2</span>
         <span class="card-group">C群：MA系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1525,7 +1353,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.32 &nbsp; <span class="card-code">vol_surge_200</span>
+      <div class="card-num">No.28 &nbsp; <span class="card-code">vol_surge_200</span>
         <span class="card-group">D群：出来高系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1568,7 +1396,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.33 &nbsp; <span class="card-code">obv_new_high</span>
+      <div class="card-num">No.29 &nbsp; <span class="card-code">obv_new_high</span>
         <span class="card-group">D群：出来高系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1611,7 +1439,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.34 &nbsp; <span class="card-code">pocket_pivot</span>
+      <div class="card-num">No.30 &nbsp; <span class="card-code">pocket_pivot</span>
         <span class="card-group">D群：出来高系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1654,7 +1482,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.35 &nbsp; <span class="card-code">vol_acceleration</span>
+      <div class="card-num">No.31 &nbsp; <span class="card-code">vol_acceleration</span>
         <span class="card-group">D群：出来高系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1697,7 +1525,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.36 &nbsp; <span class="card-code">super_tight</span>
+      <div class="card-num">No.32 &nbsp; <span class="card-code">super_tight</span>
         <span class="card-group">E群：保ち合い上級</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1740,7 +1568,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.37 &nbsp; <span class="card-code">high_tight_flag</span>
+      <div class="card-num">No.33 &nbsp; <span class="card-code">high_tight_flag</span>
         <span class="card-group">E群：保ち合い上級</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1783,7 +1611,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.38 &nbsp; <span class="card-code">v_recovery</span>
+      <div class="card-num">No.34 &nbsp; <span class="card-code">v_recovery</span>
         <span class="card-group">F群：底打ち系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1826,50 +1654,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.39 &nbsp; <span class="card-code">inv_triple_bottom</span>
-        <span class="card-group">F群：底打ち系</span>
-        <span class="signal-badge signal-bullish">買いシグナル</span>
-      </div>
-      <div class="card-name">逆三山（F-05+F-08）</div>
-    </div>
-    <div class="card-rating">
-      <div class="stars">★★★★★</div>
-      <div class="usage-tag">推奨用途：底値からの長期上昇開始の最高信頼シグナル</div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">概要</div>
-    <div class="section-body">三山（ヘッド&ショルダーズ、三尊）の反転形。3つの安値を持ち、中央の安値（ヘッド）が最も深い。逆三尊（逆ヘッドアンドショルダーズ）とも同義。ネックライン（2つの高値を結ぶ水平線）突破で買いシグナル完成。底値パターンとして最高の信頼性。</div>
-  </div>
-
-  <div class="grid2">
-    <div class="section">
-      <div class="section-title">バックテスト・研究実績</div>
-      <div class="section-body">Edwards & Magee（1948）以来最も研究されたパターン。Bulkowski（2021）の近代研究でネックラインブレイク後の平均上昇率+38%、成功率83%。</div>
-    </div>
-    <div class="section">
-      <div class="section-title">最適条件・有効フィルター</div>
-      <div class="section-body">①左肩・頭・右肩の安値でヘッドが最も深い ②左右の肩はほぼ同水準 ③ネックラインが水平または上向き傾斜 ④ネックラインブレイク時の出来高急増 ⑤目標値＝ネックラインからヘッドまでの深さ分</div>
-    </div>
-  </div>
-
-  <div class="grid2">
-    <div class="section">
-      <div class="section-title">弱点・注意点</div>
-      <div class="section-body">パターン完成（ネックライン突破）まで時間がかかる。右肩形成中にネックラインを上抜けても偽ブレイクが30%程度ある。</div>
-    </div>
-    <div class="section">
-      <div class="section-title">日本株での特性</div>
-      <div class="section-body">日本株でも逆三尊は広く知られており、特に主要指数（日経225、TOPIXなど）での逆三尊完成は市場全体の反転シグナルとして機関投資家に注目される。</div>
-    </div>
-  </div>
-</div>
-
-<div class="pattern-card">
-  <div class="card-header">
-    <div>
-      <div class="card-num">No.40 &nbsp; <span class="card-code">saucer_bottom</span>
+      <div class="card-num">No.35 &nbsp; <span class="card-code">saucer_bottom</span>
         <span class="card-group">F群：底打ち系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1912,7 +1697,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.41 &nbsp; <span class="card-code">ascending_triangle</span>
+      <div class="card-num">No.36 &nbsp; <span class="card-code">ascending_triangle</span>
         <span class="card-group">G群：ブレイクアウト系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1955,7 +1740,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.42 &nbsp; <span class="card-code">alltime_high</span>
+      <div class="card-num">No.37 &nbsp; <span class="card-code">alltime_high</span>
         <span class="card-group">G群：ブレイクアウト系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -1998,7 +1783,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.43 &nbsp; <span class="card-code">base_breakout</span>
+      <div class="card-num">No.38 &nbsp; <span class="card-code">base_breakout</span>
         <span class="card-group">G群：ブレイクアウト系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -2041,7 +1826,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.44 &nbsp; <span class="card-code">williams_r</span>
+      <div class="card-num">No.39 &nbsp; <span class="card-code">williams_r</span>
         <span class="card-group">I群：オシレーター系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -2084,7 +1869,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.45 &nbsp; <span class="card-code">canslim</span>
+      <div class="card-num">No.40 &nbsp; <span class="card-code">canslim</span>
         <span class="card-group">K群：複合指標</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -2127,7 +1912,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.46 &nbsp; <span class="card-code">neckline_vol</span>
+      <div class="card-num">No.41 &nbsp; <span class="card-code">neckline_vol</span>
         <span class="card-group">K群：複合指標</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -2170,7 +1955,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.47 &nbsp; <span class="card-code">weekly_po_first</span>
+      <div class="card-num">No.42 &nbsp; <span class="card-code">weekly_po_first</span>
         <span class="card-group">K群：複合指標</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -2213,7 +1998,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.48 &nbsp; <span class="card-code">narabiaka</span>
+      <div class="card-num">No.43 &nbsp; <span class="card-code">narabiaka</span>
         <span class="card-group">追加：ローソク足</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -2256,7 +2041,7 @@
 <div class="pattern-card">
   <div class="card-header">
     <div>
-      <div class="card-num">No.49 &nbsp; <span class="card-code">ppp_oshine</span>
+      <div class="card-num">No.44 &nbsp; <span class="card-code">ppp_oshine</span>
         <span class="card-group">追加：複合系</span>
         <span class="signal-badge signal-bullish">買いシグナル</span>
       </div>
@@ -2298,6 +2083,6 @@
 
 </div>
 
-<div class="page-footer">StockScan JP — テクニカル分析手法 全49手法 詳細分析レポート — 生成: 2026-06-03 05:34 JST</div>
+<div class="page-footer">StockScan JP — テクニカル分析手法 全44手法 詳細分析レポート — 生成: 2026-06-03 11:21 JST</div>
 </body>
 </html>

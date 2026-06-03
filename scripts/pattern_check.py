@@ -93,21 +93,24 @@ def download_stock(code: str) -> pd.DataFrame | None:
         # インジケータ計算（全期間に対して1回）
         df = calc_indicators(df)
 
-        # 週足データ（weekly_po_first 用）
+        # 週足データ（weekly_po_first 用） — インジケータは付けず生のOHLCVを保持
         try:
             wdf = ticker.history(period="3y", interval="1wk", auto_adjust=True)
             if wdf is not None and len(wdf) >= 30:
                 wdf.columns = [c.lower() for c in wdf.columns]
+                wdf.index = pd.to_datetime(wdf.index)
                 if wdf.index.tz is not None:
                     wdf.index = wdf.index.tz_localize(None)
                 wdf = wdf[['open', 'high', 'low', 'close', 'volume']].copy()
                 wdf = wdf[wdf['close'] > 0].dropna()
-                wdf = calc_indicators(wdf)
                 df.attrs['weekly_df'] = wdf
             else:
                 df.attrs['weekly_df'] = None
         except Exception:
             df.attrs['weekly_df'] = None
+
+        # 日経平均5MA方向（マーケット強弱フィルター用）
+        df.attrs['nikkei_ma5_up'] = analyze._load_nikkei()
 
         return df
     except Exception:
@@ -118,8 +121,18 @@ def check_at(df_full: pd.DataFrame, i: int, fn) -> bool:
     """df_full の i 番目の日をトリガー日としてパターンを評価する"""
     sl = df_full.iloc[:i + 1]
     ath_val = df_full['_ath'].iloc[i]
-    sl.attrs['ath']       = float(ath_val) if pd.notna(ath_val) else None
-    sl.attrs['weekly_df'] = df_full.attrs.get('weekly_df')
+    sl.attrs['ath'] = float(ath_val) if pd.notna(ath_val) else None
+    # 週足はトリガー日までに切り詰める（未来データを参照しない）
+    wdf = df_full.attrs.get('weekly_df')
+    if wdf is not None:
+        try:
+            trigger_date = df_full.index[i]
+            sl.attrs['weekly_df'] = wdf[wdf.index <= trigger_date]
+        except Exception:
+            sl.attrs['weekly_df'] = wdf
+    else:
+        sl.attrs['weekly_df'] = None
+    sl.attrs['nikkei_ma5_up'] = df_full.attrs.get('nikkei_ma5_up')
     try:
         return bool(fn(sl))
     except Exception:
