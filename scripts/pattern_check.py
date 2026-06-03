@@ -184,6 +184,8 @@ def collect_examples(stocks: dict) -> dict:
                         for ma in ('ma5', 'ma25', 'ma75'):
                             if ma in row and not pd.isna(row[ma]):
                                 entry[ma] = round(float(row[ma]), 1)
+                        if 'vol_ma25' in row and not pd.isna(row['vol_ma25']):
+                            entry['vol_ma25'] = int(row['vol_ma25'])
                         ohlcv.append(entry)
 
                     examples[key].append({
@@ -406,7 +408,8 @@ function drawVolume(canvas, ohlcv, triggerIdx) {
   const CW = W-PL-PR, CH = H-PT-PB;
   const n  = ohlcv.length;
   const bW = CW / n;
-  const maxV = Math.max(...ohlcv.map(d => d.vol)) || 1;
+  const allVols = ohlcv.map(d => d.vol_ma25 != null ? Math.max(d.vol, d.vol_ma25) : d.vol);
+  const maxV = Math.max(...allVols) || 1;
 
   ohlcv.forEach((d,i) => {
     const x   = PL + (i+0.175)*bW;
@@ -417,6 +420,24 @@ function drawVolume(canvas, ohlcv, triggerIdx) {
     ctx.fillStyle = isTr ? '#ffd70099' : (isUp ? '#26a69a55' : '#ef535055');
     ctx.fillRect(x, PT+CH-h, w, h);
   });
+
+  // vol_ma25 line (orange dashed)
+  if (ohlcv.some(d => d.vol_ma25 != null)) {
+    ctx.strokeStyle = '#ef6c00';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    let started = false;
+    ohlcv.forEach((d, i) => {
+      if (d.vol_ma25 == null) { started = false; return; }
+      const x = PL + (i + 0.5) * bW;
+      const y = PT + CH - (d.vol_ma25 / maxV) * CH;
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
 }
 
 // ── DOM 構築・タブ ────────────────────────────────────────────
