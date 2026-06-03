@@ -645,6 +645,9 @@ def chk_cup_with_handle(df: pd.DataFrame) -> bool:
             continue
         if right_high < left_high * 0.90:               # 右肩が左高値近くまで回復
             continue
+        handle_low = float(handle['low'].min())
+        if handle_low < bottom + (left_high - bottom) / 2.0:  # ハンドルはカップ上半分
+            continue
         best = max(left_high, right_high)
         break
     if best is None:
@@ -790,14 +793,12 @@ def chk_large_bullish_5pct(df: pd.DataFrame) -> bool:
     if len(df) < 66:
         return False
     p, c = df.iloc[-2], df.iloc[-1]
-    if p['close'] <= 0:
-        return False
-    if (c['close'] - p['close']) / p['close'] < 0.05:   # ①当日上昇率5%以上
-        return False
-    if not _vol_surge(c, 1.5):                          # ②出来高
+    if p['close'] <= 0 or c['open'] <= 0:
         return False
     body = c['close'] - c['open']
-    if body <= 0:
+    if body <= 0 or body / c['open'] < 0.05:            # ①陽線実体5%以上（始値-終値で計測）
+        return False
+    if not _vol_surge(c, 1.5):                          # ②出来高
         return False
     hi_shadow = c['high'] - max(c['open'], c['close'])
     if hi_shadow > body * 0.30:                         # ④上ひげ短い
@@ -832,8 +833,8 @@ def chk_island_reversal(df: pd.DataFrame) -> bool:
         return False
     if not _ma25_down(df):                              # 25MA下向き
         return False
-    c, prev = df.iloc[-1], df.iloc[-2]
-    if c['open'] <= prev['high'] or c['close'] <= c['open']:  # ②上昇ギャップ（陽線）
+    c = df.iloc[-1]
+    if c['close'] <= c['open']:                          # 陽線
         return False
     if not _vol_surge(c, 1.5):                          # ④出来高25日平均1.5倍
         return False
@@ -846,7 +847,9 @@ def chk_island_reversal(df: pd.DataFrame) -> bool:
         pre_island   = df.iloc[-(L + 2)]
         island_start = df.iloc[-(L + 1)]
         island       = df.iloc[-(L + 1):-1]
-        if island_start['open'] >= pre_island['low']:   # 下落ギャップ
+        if island_start['open'] >= pre_island['low']:   # 下落ギャップで島入り
+            continue
+        if c['open'] <= float(island['high'].max()):    # 上昇ギャップで島脱出（島の最高値を超える）
             continue
         if (island['volume'] > vm * 0.70).any():        # ③島の出来高枯れ
             continue
@@ -1153,7 +1156,7 @@ def chk_ascending_triangle(df: pd.DataFrame) -> bool:
         return False
     high_arr = np.array(highs)
     mean_h = high_arr.mean()
-    if mean_h <= 0 or high_arr.std() / mean_h > 0.02:
+    if mean_h <= 0 or high_arr.std() / mean_h > 0.015:
         return False
     resistance = mean_h
     lows_idx, lows_val = [], []
