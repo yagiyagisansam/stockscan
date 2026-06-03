@@ -250,7 +250,14 @@ function drawCandle(canvas, ohlcv, triggerIdx) {
   const n  = ohlcv.length;
 
   let hi = -Infinity, lo = Infinity;
-  ohlcv.forEach(d => { hi = Math.max(hi,d.high); lo = Math.min(lo,d.low); });
+  ohlcv.forEach(d => {
+    hi = Math.max(hi, d.high);
+    lo = Math.min(lo, d.low);
+    // MAがローソク足レンジ外でも確実に表示されるよう範囲に含める
+    ['ma5','ma25','ma75'].forEach(k => {
+      if (d[k] != null) { hi = Math.max(hi, d[k]); lo = Math.min(lo, d[k]); }
+    });
+  });
   const mg  = (hi - lo) * 0.06 || hi * 0.01 || 1;
   hi += mg; lo -= mg;
   const pr  = hi - lo;
