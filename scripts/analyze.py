@@ -9,10 +9,12 @@ import pandas as pd
 import numpy as np
 import json
 import os
+import re
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+import requests
 
 
 # ─── データ取得 ──────────────────────────────────────────
@@ -58,16 +60,39 @@ def get_stock_data(code: str) -> pd.DataFrame | None:
     return df
 
 
-def get_stock_info(code: str) -> dict:
+def _has_japanese(text: str) -> bool:
+    return bool(re.search(r'[　-鿿＀-￯]', text))
+
+
+def get_japanese_name(code: str) -> str:
+    """Yahoo Finance search API（日本語ロケール）で会社名を取得する"""
+    ticker = f"{code}.T"
     try:
-        t = yf.Ticker(f"{code}.T")
-        info = t.info
-        return {
-            'name_en': info.get('shortName', ''),
-            'name_ja': info.get('longName', ''),
-        }
+        url = (
+            f"https://query1.finance.yahoo.com/v1/finance/search"
+            f"?q={ticker}&lang=ja&region=JP&quotesCount=5"
+        )
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        res = requests.get(url, headers=headers, timeout=10)
+        data = res.json()
+        for q in data.get('quotes', []):
+            if q.get('symbol') == ticker:
+                name = q.get('longname') or q.get('shortname') or ''
+                if name:
+                    return name
     except Exception:
-        return {}
+        pass
+    # fallback: chart endpoint（日本語名が含まれることがある）
+    try:
+        url2 = (
+            f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+            f"?lang=ja&region=JP"
+        )
+        res2 = requests.get(url2, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+        meta = res2.json().get('chart', {}).get('result', [{}])[0].get('meta', {})
+        return meta.get('longName') or meta.get('shortName') or ''
+    except Exception:
+        return ''
 
 
 def calc_indicators(df: pd.DataFrame) -> pd.DataFrame:
@@ -1440,17 +1465,17 @@ def main() -> None:
     for s in stocks:
         code = str(s['code'])
         name = s.get('name', '')
-        if not name:
-            info = get_stock_info(code)
-            name = info.get('name_ja', '') or info.get('name_en', '')
-            if name:
+        if not name or not _has_japanese(name):
+            ja_name = get_japanese_name(code)
+            if ja_name:
+                name = ja_name
                 s['name'] = name
                 stocks_updated = True
         print(f"→ {code} {name} を分析中...")
         result = analyze_stock(code, name)
         if result:
             results.append(result)
-            if result['matches'] or result['supporting']:
+            if result['matches']:
                 matched.append(result)
                 all_labels = [m['label'] for m in result['matches'] + result['supporting']]
                 print(f"  ✅ 一致: {all_labels}")
