@@ -1,0 +1,33 @@
+name: パターン検証レポート生成
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 依存ライブラリインストール
+        run: pip install yfinance pandas numpy requests
+
+      - name: パターン検証レポート生成
+        run: python scripts/pattern_check.py
+
+      - name: レポートをコミット・プッシュ
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name  "github-actions[bot]"
+          git add data/pattern_check.html
+          git diff --staged --quiet || git commit -m "chore: update pattern check report $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')"
+          git pull --rebase && git push
