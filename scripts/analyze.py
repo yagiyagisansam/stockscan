@@ -329,7 +329,7 @@ def chk_bullish_engulfing(df: pd.DataFrame) -> bool:
 def chk_hammer(df: pd.DataFrame) -> bool:
     if len(df) < 61:
         return False
-    c = df.iloc[-1]
+    p, c = df.iloc[-2], df.iloc[-1]
     body = abs(c['close'] - c['open'])
     if body <= 0 or not (c['close'] > c['open']):
         return False
@@ -337,7 +337,11 @@ def chk_hammer(df: pd.DataFrame) -> bool:
     hi_shadow = c['high'] - max(c['open'], c['close'])
     if lo_shadow < 2 * body:           # 下ひげ>=実体2倍
         return False
+    if c['close'] <= 0 or lo_shadow / c['close'] < 0.02:  # 下ひげ>=株価2%
+        return False
     if hi_shadow > body * 0.3:         # 上ひげ<=実体0.3倍
+        return False
+    if not _vol_prev(c, p, 1.5):       # 出来高前日比1.5倍
         return False
     return _low_zone(df)               # 安値圏
 
@@ -364,7 +368,7 @@ def chk_morning_star(df: pd.DataFrame) -> bool:
     d1_mid = (d1['open'] + d1['close']) / 2
     if d3['close'] <= d1_mid:                           # 1日目陰線の半値以上回復
         return False
-    if not _vol_prev(df.iloc[-1], df.iloc[-2], 1.5):    # ④3日目出来高前日比1.5倍
+    if not _vol_prev(df.iloc[-1], df.iloc[-2], 2.0):    # ④3日目出来高前日比2倍
         return False
     return True
 
@@ -407,11 +411,11 @@ def chk_gap_up(df: pd.DataFrame) -> bool:
         return False
     if c['close'] <= c['open']:                         # 陽線
         return False
-    if not _vol_prev(c, p, 1.5):                        # ③出来高前日比1.5倍
+    if not _vol_surge(c, 1.5):                          # ③出来高25日平均1.5倍
         return False
     if not _consolidation_break(df):                    # ①保ち合いブレイク後
         return False
-    return _ma_up(df, 'ma25')                            # ④25MA上向き
+    return _ma_up(df, 'ma75')                            # ④75MA上向き
 
 
 # 6 パーフェクトオーダー
@@ -445,7 +449,7 @@ def chk_gc_25_75(df: pd.DataFrame) -> bool:
         return False
     if not _ma_flat_or_up(df, 'ma75', 5):               # ①75MA水平or上向き
         return False
-    if not _vol_prev(c, p, 1.0):                        # ②出来高前日比以上
+    if not _vol_prev(c, p, 1.5):                        # ②出来高前日比1.5倍
         return False
     if c['close'] <= c['ma75']:                         # ③株価>MA75
         return False
@@ -467,7 +471,7 @@ def chk_ma25_debut(df: pd.DataFrame) -> bool:
         return False
     if df['ma25'].iloc[-1] < df['ma25'].iloc[-3]:       # ③25MA水平〜上向き転換中
         return False
-    if not _vol_prev(c, p, 1.0):                        # ④出来高前日比以上
+    if not _vol_prev(c, p, 1.2):                        # ④出来高前日比1.2倍
         return False
     return True
 
