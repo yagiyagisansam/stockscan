@@ -87,8 +87,8 @@ def download_stock(code: str) -> pd.DataFrame | None:
         if len(df) < MIN_BARS + AFTER_BARS:
             return None
 
-        # running ATH (当日を除いた過去最高値) を列として保持
-        df['_ath'] = df['close'].shift(1).expanding().max()
+        # running ATH (当日を除いた過去最高値・高値ベース) を列として保持
+        df['_ath'] = df['high'].shift(1).expanding().max()
 
         # インジケータ計算（全期間に対して1回）
         df = calc_indicators(df)
@@ -139,6 +139,50 @@ def check_at(df_full: pd.DataFrame, i: int, fn) -> bool:
         return False
 
 
+# ── 週足表示パターン ──────────────────────────────────────────
+# これらの手法は週足ベースで評価されるため、チャートも週足で表示する
+WEEKLY_DISPLAY = {'cup_with_handle', 'weekly_po_first'}
+CONTEXT_WEEKS  = 60   # トリガー週より前に表示する週数
+AFTER_WEEKS    = 6    # トリガー週より後に表示する週数
+
+
+def build_weekly_example(wdf, trigger_date):
+    """週足DFからトリガー週周辺の週足OHLCV（週足MA付き）を構築する"""
+    if wdf is None or len(wdf) < 30:
+        return None
+    w = wdf.copy()
+    w['wma5']   = w['close'].rolling(5).mean()
+    w['wma13']  = w['close'].rolling(13).mean()
+    w['wma26']  = w['close'].rolling(26).mean()
+    w['wvol13'] = w['volume'].rolling(13).mean()
+    prior = w.index[w.index <= trigger_date]
+    if len(prior) == 0:
+        return None
+    ti = w.index.get_loc(prior[-1])
+    if isinstance(ti, slice):
+        ti = ti.stop - 1
+    start = max(0, ti - CONTEXT_WEEKS)
+    end   = min(len(w), ti + AFTER_WEEKS + 1)
+    chunk = w.iloc[start:end]
+    trigger_idx = ti - start
+    ohlcv = []
+    for idx, row in chunk.iterrows():
+        entry = {
+            'time':  str(idx.date()),
+            'open':  round(float(row['open']),  1),
+            'high':  round(float(row['high']),  1),
+            'low':   round(float(row['low']),   1),
+            'close': round(float(row['close']), 1),
+            'vol':   int(row['volume']),
+        }
+        if pd.notna(row['wma5']):   entry['ma5']  = round(float(row['wma5']),  1)
+        if pd.notna(row['wma13']):  entry['ma25'] = round(float(row['wma13']), 1)
+        if pd.notna(row['wma26']):  entry['ma75'] = round(float(row['wma26']), 1)
+        if pd.notna(row['wvol13']): entry['vol_ma25'] = int(row['wvol13'])
+        ohlcv.append(entry)
+    return ohlcv, trigger_idx
+
+
 # ── パターン探索 ──────────────────────────────────────────────
 
 def collect_examples(stocks: dict) -> dict:
@@ -166,6 +210,22 @@ def collect_examples(stocks: dict) -> dict:
                     continue
                 if check_at(df, i, fn):
                     trigger_date = df.index[i]
+
+                    # 週足表示パターンは週足チャートを構築
+                    if key in WEEKLY_DISPLAY:
+                        wk = build_weekly_example(df.attrs.get('weekly_df'), trigger_date)
+                        if wk is None:
+                            continue
+                        w_ohlcv, w_trigger_idx = wk
+                        examples[key].append({
+                            'code':        code,
+                            'date':        str(trigger_date.date()),
+                            'trigger_idx': w_trigger_idx,
+                            'ohlcv':       w_ohlcv,
+                            'weekly':      True,
+                        })
+                        continue
+
                     start = max(0, i - CONTEXT_BARS)
                     end   = min(n, i + AFTER_BARS + 1)
                     chunk = df.iloc[start:end]
@@ -254,7 +314,7 @@ const CHART_H = 200;
 const VOL_H   = 44;
 
 // ── Canvas ローソク足描画 ──────────────────────────────────────
-function drawCandle(canvas, ohlcv, triggerIdx) {
+function drawCandle(canvas, ohlcv, triggerIdx, weekly) {
   const W  = canvas.width  / DPR;
   const H  = canvas.height / DPR;
   const ctx = canvas.getContext('2d');
@@ -321,8 +381,12 @@ function drawCandle(canvas, ohlcv, triggerIdx) {
     ctx.fillRect(x - cW/2, top, cW, bh);
   });
 
-  // MA lines
-  const maStyles = [
+  // MA lines（週足表示時は週足MAラベル）
+  const maStyles = weekly ? [
+    { key: 'ma5',  color: '#f9a825', lw: 1.0, label: '5W'  },
+    { key: 'ma25', color: '#42a5f5', lw: 1.5, label: '13W' },
+    { key: 'ma75', color: '#ef6c00', lw: 1.5, label: '26W' },
+  ] : [
     { key: 'ma5',  color: '#f9a825', lw: 1.0, label: 'MA5'  },
     { key: 'ma25', color: '#42a5f5', lw: 1.5, label: 'MA25' },
     { key: 'ma75', color: '#ef6c00', lw: 1.5, label: 'MA75' },
@@ -470,7 +534,7 @@ function buildContent() {
         ? '<div class="no-data">ヒット事例なし（条件が稀すぎる可能性）</div>'
         : exs.map((ex,i) => `
           <div class="example">
-            <div class="example-label"><b>${ex.code}</b> &nbsp;${ex.date}</div>
+            <div class="example-label"><b>${ex.code}</b> &nbsp;${ex.date}${ex.weekly ? ' &nbsp;<span style="color:#ffa726">週足</span>' : ''}</div>
             <canvas id="cc-${key}-${i}" style="width:100%;height:${CHART_H}px"></canvas>
             <canvas id="cv-${key}-${i}" class="gap2" style="width:100%;height:${VOL_H}px"></canvas>
           </div>`).join('');
@@ -505,7 +569,7 @@ function renderGroup(gi) {
       const W = cc.parentElement.clientWidth || 300;
       cc.width  = W * DPR; cc.height = CHART_H * DPR;
       cv.width  = W * DPR; cv.height = VOL_H   * DPR;
-      drawCandle(cc,  ex.ohlcv, ex.trigger_idx);
+      drawCandle(cc,  ex.ohlcv, ex.trigger_idx, ex.weekly);
       drawVolume(cv,  ex.ohlcv, ex.trigger_idx);
     });
   });
