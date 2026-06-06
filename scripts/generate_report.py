@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-全44手法 テクニカル分析レポート生成スクリプト
+全40手法 テクニカル分析レポート生成スクリプト
 output: data/pattern_report.html
 """
 
@@ -595,7 +595,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>テクニカル分析手法 全44手法 詳細分析レポート</title>
+<title>テクニカル分析手法 全{{COUNT}}手法 詳細分析レポート</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -763,9 +763,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 <div class="cover">
   <div class="card-num">TECHNICAL ANALYSIS REPORT</div>
-  <h1>テクニカル分析手法<br>全44手法 詳細分析レポート</h1>
+  <h1>テクニカル分析手法<br>全{{COUNT}}手法 詳細分析レポート</h1>
   <div class="subtitle">StockScan JP — 実装手法 完全解説版</div>
-  <div class="count-badge">全 44 手法収録</div>
+  <div class="count-badge">全 {{COUNT}} 手法収録</div>
   <div class="meta">
     <p>生成日: {{GENERATED_AT}}</p>
     <p>対象市場: 東京証券取引所（東証）</p>
@@ -783,7 +783,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   {{PATTERNS_HTML}}
 </div>
 
-<div class="page-footer">StockScan JP — テクニカル分析手法 全44手法 詳細分析レポート — 生成: {{GENERATED_AT}}</div>
+<div class="page-footer">StockScan JP — テクニカル分析手法 全{{COUNT}}手法 詳細分析レポート — 生成: {{GENERATED_AT}}</div>
 </body>
 </html>
 """
@@ -868,6 +868,7 @@ def main():
     toc_html = build_toc(PATTERNS)
     patterns_html = build_patterns(PATTERNS)
     html = HTML_TEMPLATE.replace("{{GENERATED_AT}}", generated_at)
+    html = html.replace("{{COUNT}}", str(len(PATTERNS)))
     html = html.replace("{{TOC_HTML}}", toc_html)
     html = html.replace("{{PATTERNS_HTML}}", patterns_html)
     out = os.path.join(os.path.dirname(__file__), '..', 'data', 'pattern_report.html')
