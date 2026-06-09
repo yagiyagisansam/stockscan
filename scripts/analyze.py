@@ -1206,7 +1206,7 @@ def chk_williams_r(df: pd.DataFrame) -> bool:
     if len(past) == 0 or not (past <= -80).any():
         return False
     p = df.iloc[-2]
-    if not _vol_prev(c, p, 1.0):                        # ③出来高前日比以上
+    if not _vol_prev(c, p, 1.3):                        # ③出来高前日比1.3倍以上
         return False
     return True
 
