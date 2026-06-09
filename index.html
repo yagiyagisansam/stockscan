@@ -2072,7 +2072,7 @@ async function fetchStocksSha(token) {
   } catch(e) {}
 }
 
-async function pushStocksToGitHub(token) {
+async function pushStocksToGitHub(token, retry = true) {
   if (!stocksJsonSha) await fetchStocksSha(token);
   const content = btoa(unescape(encodeURIComponent(JSON.stringify(state.stocks, null, 2))));
   try {
@@ -2090,6 +2090,12 @@ async function pushStocksToGitHub(token) {
       }
     );
     if (res.ok) { const d = await res.json(); stocksJsonSha = d.content.sha; return true; }
+    // sha競合（定期実行による名前補完などで stocks.json が更新済み）→ 最新shaを取り直して1回だけ再試行
+    if ((res.status === 409 || res.status === 422) && retry) {
+      stocksJsonSha = null;
+      await fetchStocksSha(token);
+      return pushStocksToGitHub(token, false);
+    }
     return false;
   } catch(e) { return false; }
 }
@@ -2112,8 +2118,20 @@ async function syncStocksOnly() {
 async function triggerAnalysis(token) {
   const btn = document.getElementById('runBtn');
   btn.disabled = true;
-  btn.textContent = '送信中...';
 
+  // 分析実行前に登録銘柄リストを最新化（UIで追加した未反映の銘柄も全て分析対象にする）
+  btn.textContent = '銘柄反映中...';
+  showRunBar('登録銘柄をGitHubに反映中...');
+  const synced = await pushStocksToGitHub(token);
+  if (!synced) {
+    btn.disabled = false;
+    btn.textContent = '▶ 今すぐ分析';
+    showRunBar('⚠ 銘柄リストの反映に失敗しました（PATの contents/workflow 権限を確認してください）');
+    setTimeout(hideRunBar, 5000);
+    return;
+  }
+
+  btn.textContent = '送信中...';
   try {
     const res = await fetch(
       `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,
