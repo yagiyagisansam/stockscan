@@ -402,8 +402,8 @@ body{
     <button class="close-btn" onclick="closeDrawer('stock')">✕</button>
   </div>
   <div class="stock-input-row">
-    <input type="text" id="stockCodeInput" placeholder="銘柄コード（例: 7203）" maxlength="6"
-           oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+    <input type="text" id="stockCodeInput" placeholder="銘柄コード（例: 7203 / 167A）" maxlength="6"
+           oninput="this.value=this.value.replace(/[^0-9a-zA-Z]/g,'').toUpperCase()"
            onkeydown="if(event.key==='Enter')addStock()">
     <button class="btn btn-primary" onclick="addStock()">追加</button>
   </div>
@@ -1964,9 +1964,9 @@ async function fetchStockName(code) {
 
 async function addStock() {
   const input = document.getElementById('stockCodeInput');
-  const code  = input.value.trim();
-  if (!code || !/^\d{4}$/.test(code)) {
-    alert('4桁の銘柄コードを入力してください');
+  const code  = input.value.trim().toUpperCase();
+  if (!code || !/^[0-9A-Z]{4}$/.test(code)) {
+    alert('4桁の銘柄コードを入力してください（例: 7203 / 167A）');
     return;
   }
   if (state.stocks.some(s => s.code === code)) {
