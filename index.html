@@ -1773,8 +1773,10 @@ function computePatternOverlay(patternKey, data) {
     case 'super_tight': {
       const days = patternKey === 'super_tight' ? 5 : 15;
       for (let i = Math.max(0,n-days); i < n; i++) addMark(i, '', '#90A4AE', 'aboveBar', 'circle');
-      addHLine(Math.min(...lows.slice(Math.max(0,n-days))),  '保ち合い下限', '#90A4AE', 2);
-      addHLine(Math.max(...highs.slice(Math.max(0,n-days))), 'ブレイク水準', '#FF6F00', 2);
+      addHLine(Math.min(...lows.slice(Math.max(0,n-days))), '保ち合い下限', '#90A4AE', 2);
+      // ブレイク水準 = 年初来高値（252日の高値最大値）
+      const yearHigh = Math.max(...highs.slice(Math.max(0, n-252)));
+      addHLine(yearHigh, 'ブレイク水準（年初来高値）', '#FF6F00', 2);
       break;
     }
     case 'ascending_triangle':
