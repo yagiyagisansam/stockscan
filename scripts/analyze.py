@@ -556,8 +556,8 @@ def chk_new_high_vol(df: pd.DataFrame) -> bool:
         return False
     c = df.iloc[-1]
     p = df.iloc[-2]
-    lookback = df['close'].iloc[-252:-1] if len(df) >= 253 else df['close'].iloc[:-1]
-    if c['close'] < float(lookback.max()):              # ①52週高値更新
+    lookback = df['high'].iloc[-252:-1] if len(df) >= 253 else df['high'].iloc[:-1]
+    if c['close'] < float(lookback.max()):              # ①52週高値更新（high基準）
         return False
     if not _vol_prev(c, p, 1.5):                        # ②出来高
         return False
@@ -774,11 +774,12 @@ def chk_high_level_tight(df: pd.DataFrame) -> bool:
     if len(df) < 80:
         return False
     c = df.iloc[-1]
-    lookback = df['close'].iloc[-252:] if len(df) >= 252 else df['close']
-    year_high = float(lookback.max())
+    # 年初来高値は high（高値）列で計算する。close だと実際の高値より低くなり誤検知の原因になる
+    lookback_high = df['high'].iloc[-252:] if len(df) >= 252 else df['high']
+    year_high = float(lookback_high.max())
     if year_high <= 0:
         return False
-    if c['close'] < year_high * 0.90:                   # ①高値の90%以上
+    if c['close'] < year_high * 0.90:                   # ①年初来高値の90%以上
         return False
     win = df.iloc[-15:]                                 # ②3週間
     hi = float(win['high'].max())
@@ -826,9 +827,9 @@ def chk_uwabane_large(df: pd.DataFrame) -> bool:
         return False
     if not _vol_surge(c, 2.0):                          # ③出来高25日平均2倍
         return False
-    lookback = df['close'].iloc[-252:-1] if len(df) >= 253 else df['close'].iloc[:-1]
+    lookback = df['high'].iloc[-252:-1] if len(df) >= 253 else df['high'].iloc[:-1]
     h52 = float(lookback.max())
-    new_52w_high = h52 > 0 and c['close'] >= h52        # 52週高値ブレイク
+    new_52w_high = h52 > 0 and c['close'] >= h52        # 52週高値ブレイク（high基準）
     if not (new_52w_high or _consolidation_break(df)):  # ④保ち合い上限or52週高値からのブレイク
         return False
     return True
