@@ -774,21 +774,27 @@ def chk_high_level_tight(df: pd.DataFrame) -> bool:
     if len(df) < 80:
         return False
     c = df.iloc[-1]
-    # 年初来高値は high（高値）列で計算する。close だと実際の高値より低くなり誤検知の原因になる
+    # 年初来高値は high 列で計算
     lookback_high = df['high'].iloc[-252:] if len(df) >= 252 else df['high']
     year_high = float(lookback_high.max())
     if year_high <= 0:
         return False
-    if c['close'] < year_high * 0.90:                   # ①年初来高値の90%以上
+    if c['close'] < year_high * 0.90:                    # ①現在値が年初来高値の90%以上
         return False
-    win = df.iloc[-15:]                                 # ②3週間
+    win = df.iloc[-15:]                                  # 直近15日
     hi = float(win['high'].max())
     lo = float(win['low'].min())
-    if hi <= 0 or (hi - lo) / hi >= 0.10:               # ③レンジ10%以内
+    if hi <= 0 or (hi - lo) / hi >= 0.10:                # ③レンジ10%以内
+        return False
+    if hi < year_high * 0.98:                            # ②保ち合い上限が年初来高値の98%以上（=年初来高値圏での保ち合い）
         return False
     if (win['close'] < year_high * 0.85).any():
         return False
-    vm = c['vol_ma25']                                  # ④出来高枯れ
+    # 直近30日で保ち合い下限（lo）を3%超下回った日があれば除外（一時的な下振れは本物の保ち合いではない）
+    win30 = df.iloc[-30:]
+    if (win30['low'] < lo * 0.97).any():
+        return False
+    vm = c['vol_ma25']                                   # ④出来高枯れ
     if pd.isna(vm) or vm <= 0 or win['volume'].mean() >= vm:
         return False
     return True
