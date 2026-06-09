@@ -158,6 +158,10 @@ body{
   background:#FFF8E1;color:#F57F17;
   border:1px dashed #FFB300;
 }
+.no-match-chip--error{
+  background:#FAFAFA;color:#9E9E9E;
+  border:1px dashed #BDBDBD;
+}
 
 /* ── ドロワー（手法選択・銘柄管理） ── */
 .overlay{
@@ -1184,12 +1188,18 @@ function render() {
   const unanalyzed  = state.stocks
     .filter(s => !resultCodes.has(s.code))
     .map(s => ({ code: s.code, name: s.name || '', _unanalyzed: true }));
+  // results.json に含まれているがデータ取得失敗の銘柄
+  const withError = (state.results.stocks || [])
+    .filter(s => s.error)
+    .map(s => ({ ...s, _dataerror: true }));
 
   const unmatched = [
     ...stocks.filter(s =>
+      !s.error &&
       !(s.matches    || []).some(m => state.enabledMethods.has(m.key)) &&
       !(s.supporting || []).some(m => state.enabledMethods.has(m.key))
     ),
+    ...withError,
     ...unanalyzed,
   ];
 
@@ -1236,8 +1246,10 @@ function render() {
     list.className = 'no-match-list';
     unmatched.forEach(s => {
       const chip = document.createElement('span');
-      chip.className = s._unanalyzed ? 'no-match-chip no-match-chip--unanalyzed' : 'no-match-chip';
-      chip.textContent = `${s.code}${s.name ? ' ' + s.name : ''}${s._unanalyzed ? ' (未分析)' : ''}`;
+      chip.className = s._unanalyzed ? 'no-match-chip no-match-chip--unanalyzed'
+                      : s._dataerror  ? 'no-match-chip no-match-chip--error'
+                      : 'no-match-chip';
+      chip.textContent = `${s.code}${s.name ? ' ' + s.name : ''}${s._unanalyzed ? ' (未分析)' : s._dataerror ? ' (データなし)' : ''}`;
       list.appendChild(chip);
     });
     sec.appendChild(list);
