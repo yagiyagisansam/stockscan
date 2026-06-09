@@ -1579,6 +1579,21 @@ def main() -> None:
                 print(f"  ✅ 一致: {all_labels}")
             else:
                 print(f"  　 マッチなし")
+        else:
+            # データ取得失敗でも results.json に含める（フロントで「未分析」にならないよう）
+            print(f"  ⚠ データ取得失敗")
+            results.append({
+                'code':         code,
+                'name':         name,
+                'close':        None,
+                'change':       None,
+                'volume':       None,
+                'matches':      [],
+                'supporting':   [],
+                'chart':        [],
+                'weekly_chart': [],
+                'error':        True,
+            })
 
     results.sort(key=lambda x: (-len(x['matches']), -len(x.get('supporting', [])), x['code']))
 
