@@ -1,103 +1,66 @@
-# SESSION_HANDOFF — stockscan (2026-06-03)
+# SESSION_HANDOFF — stockscan (2026-06-09)
 
 ## リポジトリ
 - **URL**: https://github.com/yagiyagisansam/stockscan
-- **作業ブランチ**: `claude/previous-session-handoff-78FrI`（PR済みでmainにマージ済み）
+- **作業ブランチ**: `claude/stockscan-handoff-mxlsv2`（main に対して 8 コミット先行・PR 未作成）
 - **GitHub Pages**: index.html がそのままフロントエンド（単一ファイルアプリ）
-
-## 現在の状態まとめ
-
-### mainブランチの最新コミット（2026-06-03）
-```
-46a678e chore: update stock analysis results 2026-06-03 10:42 JST  ← GitHub Actions 自動実行
-242a94d chore: ignore Python __pycache__ directories (#8)
-25f1974 fix: 全49手法の判定精度向上・PPP分割・日本語名取得改善  ← PR#7
-0da4b8a fix: 未分析銘柄表示・スピナー修正・名前補完・APIタイムアウト追加
-abb3d1f fix: 上場来高値条件修正・PocketPivot厳格化・PPP押し目追加・銘柄名補完
-```
-
-### data/stocks.json — 18銘柄（うち名前あり）
-| コード | 現在の名前 | 状態 |
-|--------|----------|------|
-| 7974 | 任天堂 | ✅ 日本語 |
-| 4063 | 信越化学工業 | ✅ 日本語 |
-| 8306 | 三菱UFJフィナンシャルG | ✅ 日本語 |
-| 8766 | Tokio Marine Holdings, Inc. | ❌ 英語 |
-| 3984 | User Local, Inc. | ❌ 英語 |
-| 4042 | Tosoh Corporation | ❌ 英語 |
-| 1828 | Tanabe Engineering Corporation | ❌ 英語 |
-| 7013 | IHI Corporation | ❌ 英語 |
-| 5401 | Nippon Steel Corporation | ❌ 英語 |
-| 1879 | Shinnihon Corporation | ❌ 英語 |
-| 3993 | PKSHA Technology Inc. | ❌ 英語 |
-| 4390 | IPS, Inc. | ❌ 英語 |
-| 3817 | SRA Holdings, Inc. | ❌ 英語 |
-| 4204 | Sekisui Chemical Co., Ltd. | ❌ 英語 |
-| 8252 | Marui Group Co., Ltd. | ❌ 英語 |
-| 5290 | Vertex Corporation | ❌ 英語 |
-| 6625 | JALCO Holdings Inc. | ❌ 英語 |
-| 6255 | （空） | ❓ results.jsonに存在しない |
-
-### data/results.json — 直近分析結果（2026/06/03）
-- **17銘柄分析済み**（6255が欠落）
-- **全17銘柄がマッチなし**
 
 ---
 
-## 未解決の問題
+## 前セッション（2026-06-03〜2026-06-08）の完了事項
 
-### 🔴 優先度：高
+### 1. 会社名の日本語化 ✅
+`scripts/analyze.py` に `get_japanese_name()` を実装。Yahoo Finance Search API（`lang=ja&region=JP`）で日本語名を取得し、fallback に chart endpoint を使用。`stocks.json` の全 17 銘柄が日本語名になった。
 
-#### 1. 会社名が英語になる問題
-**原因**: `scripts/analyze.py` の `get_stock_info()` が yfinance の `longName`/`shortName` を使っており、これは英語名を返す。workflow が実行されるたびに stocks.json の名前が英語で上書きされる。
+### 2. パターン検出条件の全面改訂 ✅
+- **40 手法** に再整理（4 手法削除・複数追加）
+- 週足チャートデータ（`weekly_chart` フィールド）を `results.json` に付加
+- `index.html` が週足チャートを表示可能に
+- `vol_ma25` ラインをチャートオーバーレイに追加
 
-フロントエンドの `backfillMissingNames()` は「名前が空のもののみ補完」するため、英語名が入っていると日本語への変換が走らない。
+### 3. 6255 銘柄の除去 ✅
+yfinance でデータ取得不可のため `stocks.json` から削除。現在 17 銘柄。
 
-**推奨修正 — analyze.py の名前取得を日本語APIに変更**:
-```python
-import requests
+### 4. pattern_check.py / generate_report.py 更新 ✅
+- `pattern_check.py`: ~120 銘柄ユニバースで 40 手法の Hit 事例を収集
+- `generate_report.py`: レポートを 40 手法対応に更新
 
-def get_japanese_name(code):
-    """Yahoo Finance search APIで日本語の会社名を取得"""
-    ticker = f"{code}.T"
-    try:
-        url = f"https://query1.finance.yahoo.com/v1/finance/search?q={ticker}&lang=ja&region=JP&quotesCount=5"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        res = requests.get(url, headers=headers, timeout=10)
-        data = res.json()
-        for q in data.get('quotes', []):
-            if q.get('symbol') == ticker:
-                return q.get('longname') or q.get('shortname') or ''
-    except Exception:
-        pass
-    return ''
+### 5. 最新分析結果（2026-06-08）
+```
+総数: 17 銘柄, マッチ: 6 銘柄
+1879 新日本建設  → 高値圏コンソリデーション, PPP押し目
+3984 ユーザーローカル → ウィリアムズ%R
+1828 田辺工業   → ウィリアムズ%R
+4390 アイ・ピー・エス → PPP押し目
+6625 JALCOホールディングス → ウィリアムズ%R
+7974 任天堂    → ウィリアムズ%R
 ```
 
-`main()` 内での呼び出しを `get_stock_info()` → `get_japanese_name()` に変更する。
+---
 
-または、**analyze.py での名前書き込みを完全に削除**し、フロントエンドの `backfillMissingNames()` が常に実行されるよう（空チェックをラテン文字チェックに変更）にする。
+## 未解決の問題・次セッションでやること
 
-#### 2. 全銘柄がマッチなしの問題
-**状況**: 2026-06-03の分析で全17銘柄がマッチなし（パターン検出ゼロ）
+### 🔴 要確認
 
-前セッションで多数の条件を強化した結果、全条件が厳しすぎる可能性がある。少なくとも `golden_cross`、`vol_surge_150`、`ma25_cross_up` は頻繁に発生するはずなので、これらもゼロなのは要調査。
+#### 1. ウィリアムズ%R の出来高条件を強化（今セッションで対応済み）
+- **修正内容**: `chk_williams_r` の出来高条件を `_vol_prev(c, p, 1.0)` → `_vol_prev(c, p, 1.3)` に変更
+- 前日比 1.0 倍（＝前日以上なら OK）は実質無条件だったため 1.3 倍（30% 増）に引き上げ
+- 次回 GitHub Actions 実行後、マッチ数が適切か確認する
 
-**デバッグ方法**:
-```bash
-cd /home/user/stockscan
-pip install yfinance pandas numpy requests
-# analyze.py に print デバッグを追加して1銘柄だけ実行
-python3 scripts/analyze.py 2>&1 | head -100
-```
+#### 2. ブランチを main にマージ
+このブランチ（`claude/stockscan-handoff-mxlsv2`）は main に対して 8 コミット先行。PR を作成して main にマージする。
 
-#### 3. 6255が分析されていない問題
-**状況**: stocks.json には 6255 があるが results.json に存在しない（17銘柄のみ）
-```python
-import yfinance as yf
-df = yf.download('6255.T', period='6mo', progress=False)
-print(df.shape, df.tail())
-```
-で取得可否を確認する。上場廃止・データなしの場合は stocks.json から削除を検討。
+### 🟡 その後の改善候補
+
+#### 3. 監視銘柄の追加・入れ替え
+現在 17 銘柄。ユーザーが追加したい銘柄があれば `stocks.json` を更新する。フロントエンドから追加もできる（`addStock()` → `syncStocksOnly()` で即時 GitHub Push）。
+
+#### 4. GitHub Actions の手動実行で動作確認
+PR マージ後、Actions タブ → stock-analysis.yml → 「Run workflow」で手動実行し、analyze.py の改善が正しく動作するか確認。
+
+#### 5. 誤検知パターンの精査
+- `williams_r`: 今セッションで出来高条件強化済み。次回結果で効果を確認。
+- `ppp_oshine` (PPP押し目): 条件を確認し過検知なら強化。
 
 ---
 
@@ -106,62 +69,68 @@ print(df.shape, df.tail())
 ### ファイル構成
 ```
 stockscan/
-├── index.html          # フロントエンド全体（~2224行）単一ファイルアプリ
+├── index.html              # フロントエンド全体（~2228行）単一ファイルアプリ
 ├── data/
-│   ├── stocks.json     # 監視銘柄リスト [{code, name}, ...]
-│   └── results.json    # 分析結果 {date, timestamp, total, matched, stocks:[...]}
+│   ├── stocks.json         # 監視銘柄リスト [{code, name}, ...] 17銘柄
+│   ├── results.json        # 分析結果 {date, timestamp, total, matched, stocks:[...]}
+│   ├── pattern_check.html  # パターン検証レポート（pattern_check.py 生成）
+│   └── pattern_report.html # パターン一覧レポート（generate_report.py 生成）
 ├── scripts/
-│   └── analyze.py      # Python分析スクリプト（~1486行）
-├── .gitignore          # __pycache__/ 等を除外
+│   ├── analyze.py          # Python分析スクリプト（~1609行・40手法）
+│   ├── pattern_check.py    # ~120銘柄ユニバースでのパターン検証
+│   └── generate_report.py  # 手法説明レポート生成
+├── .gitignore
 └── .github/workflows/
-    └── stock-analysis.yml  # 毎日18:00 JST + 手動実行
+    ├── stock-analysis.yml  # 毎日18:00 JST + 手動実行
+    ├── pattern-check.yml   # パターン検証ワークフロー
+    └── pages.yml           # GitHub Pages デプロイ
 ```
 
 ### results.json のスキーマ
 ```json
 {
-  "date": "2026/06/03",
+  "date": "2026/06/08",
   "timestamp": "...",
   "total": 17,
-  "matched": 0,
+  "matched": 6,
   "stocks": [
     {
       "code": "7974",
       "name": "任天堂",
-      "methods": {
-        "alltime_high": false,
-        "golden_cross": false,
-        ...
-      }
+      "close": 7524.0,
+      "change": 3.47,
+      "volume": 1234567,
+      "matches": [{"key": "williams_r", "label": "ウィリアムズ%R（I-10）"}],
+      "supporting": [],
+      "chart": [...],
+      "weekly_chart": [...]
     }
   ]
 }
 ```
 
-### フロントエンド (index.html) の主要機能
-- **銘柄追加/削除**: `addStock()`, `removeStock()` → `syncStocksOnly()` でGitHubに即時反映（分析は実行しない）
-- **日本語名取得**: `fetchStockName(code)` → Yahoo Finance Search API (`lang=ja&region=JP`) → fallback: chart endpoint
-- **名前補完**: `backfillMissingNames()` → 名前が空の銘柄のみ自動補完（ページ読み込み時）
-  - **注意**: 英語名が入っていると補完が走らない（空チェックのみ）
-- **チャート**: TradingView Lightweight Charts v4.1.3
-  - 日足デフォルト: 直近65本 `setVisibleLogicalRange({from: data.length-65, to: data.length+2})`
-  - 週足デフォルト: 直近52本（1年分）
-- **パターンオーバーレイ**: バッジタップ → `computePatternOverlay(stock, key)` → マーカー + 水平線表示
+### CHECKS テーブル（40 手法）
+```
+bullish_engulfing, hammer, morning_star, three_white_soldiers, gap_up,
+perfect_order(*), gc_25_75(*), ma25_debut(*), ma75_recovery(*), ma_squeeze_breakout,
+price_above_all_ma(*), vol_surge_150(*), new_high_vol, vol_dry_surge(*),
+vcp, cup_with_handle, tight_area, double_bottom, flag, high_level_tight,
+large_bullish_5pct, uwabane_large, island_reversal, ma25_touch_rebound(*),
+weinstein_stage2, vol_surge_200(*), obv_new_high(*), vol_acceleration(*),
+super_tight, high_tight_flag, v_recovery, saucer_bottom,
+ascending_triangle, alltime_high, base_breakout, williams_r,
+neckline_vol(*), weekly_po_first, narabiaka, ppp_oshine
+* は is_standalone=False（サポートシグナル扱い）
+```
 
-### 分析パターン一覧（50手法）
-analyze.py の `CHECKS` テーブル:
-```
-alltime_high, pocket_pivot, golden_cross, death_cross, vol_surge_150,
-ma25_cross_up, ma75_cross_up, macd_cross, rsi_oversold, bollinger_break_up,
-bollinger_break_down, consecutive_rise3, three_soldiers, three_crows,
-doji_star, hammer, shooting_star, morning_star, evening_star, saucer_bottom,
-double_bottom, triple_bottom, inv_head_shoulders, vcp, ppp, ppp_oshine,
-flag, pennant, ascending_triangle, descending_triangle, symmetrical_triangle,
-cup_with_handle, inv_cup_with_handle, rectangle, channel_up, channel_down,
-gap_up, gap_down, ma5_cross_ma25, ma25_cross_ma75, pullback_to_ma25,
-pullback_to_ma75, ma75_recovery, vol_dry_up, high_tight_flag,
-inv_triple_bottom, double_top, head_shoulders, wedge_up, wedge_down
-```
+### フロントエンド (index.html) の主要機能
+- **銘柄追加/削除**: `addStock()`, `removeStock()` → `syncStocksOnly()` で GitHub に即時反映
+- **日本語名取得**: `fetchStockName(code)` → Yahoo Finance Search API (`lang=ja&region=JP`)
+- **チャート**: TradingView Lightweight Charts v4.1.3
+  - 日足デフォルト: 直近 65 本
+  - 週足デフォルト: 直近 52 本（1 年分）
+  - vol_ma25 ラインをチャートオーバーレイに表示
+- **パターンオーバーレイ**: バッジタップ → `computePatternOverlay(stock, key)` → マーカー + 水平線
 
 ### GitHub Actions ワークフロー
 - **スケジュール**: 毎日 09:00 UTC (= 18:00 JST) 平日のみ
@@ -172,38 +141,24 @@ inv_triple_bottom, double_top, head_shoulders, wedge_up, wedge_down
 
 ---
 
-## 次セッションでやること
-
-### 最優先
-1. **会社名を日本語で取得** — `scripts/analyze.py` の `get_stock_info()` を日本語API対応に変更（上記コード参照）
-2. **全マッチなしの原因調査** — analyze.py をデバッグ実行して条件が厳しすぎないか確認
-3. **6255の欠落原因調査** — yfinance で 6255.T のデータ取得可否を確認
-
-### その後
-4. 修正後に GitHub Actions を手動実行して結果を確認
-5. 判定精度が適切かユーザーに確認してもらう
-
----
-
-## Gitの操作メモ
+## Git 操作メモ
 ```bash
-# ローカルリポジトリのパス
+# 現在地
 cd /home/user/stockscan
 
-# リモートURL（プロキシ経由 — ポート番号はセッションごとに変わる）
+# リモート確認（プロキシ経由）
 git remote -v
 
-# 新しい作業ブランチを作成してプッシュ
-git checkout -b claude/new-branch-name
-git push -u origin claude/new-branch-name
-
-# mainの最新を取得してからブランチ作成
+# main の最新を取得
 git fetch origin main
-git checkout -b claude/new-branch main
+
+# 新しい作業ブランチを作成してプッシュ
+git checkout -b claude/new-branch-name main
+git push -u origin claude/new-branch-name
 ```
 
-## GitHub MCPツール利用メモ
-- `ToolSearch` で `select:mcp__github__create_pull_request,...` して schema をロードしてから使う
+## GitHub MCP ツール利用メモ
+- `ToolSearch` で schema をロードしてから使う
 - PRの作成: `mcp__github__create_pull_request`
 - PRのマージ: `mcp__github__merge_pull_request`
 - ファイル内容取得: `mcp__github__get_file_contents`
