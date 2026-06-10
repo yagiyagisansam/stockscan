@@ -790,9 +790,12 @@ def chk_high_level_tight(df: pd.DataFrame) -> bool:
         return False
     if (win['close'] < year_high * 0.85).any():
         return False
-    # 直近30日で保ち合い下限（lo）を3%超下回った日があれば除外（一時的な下振れは本物の保ち合いではない）
-    win30 = df.iloc[-30:]
-    if (win30['low'] < lo * 0.97).any():
+    # ⑤保ち合い下限（lo）の維持確認: 直近30日 および 年初来高値をつけた日以降の
+    # 全期間で安値が lo を一度でも下回っていたら除外（下振れ後の戻りは保ち合いではない）
+    yh_pos = int(np.argmax(lookback_high.values))        # lookback内での年初来高値の位置
+    yh_idx = len(df) - len(lookback_high) + yh_pos       # df全体での位置
+    start = min(len(df) - 30, yh_idx)
+    if (df['low'].iloc[start:].values < lo).any():
         return False
     vm = c['vol_ma25']                                   # ④出来高枯れ
     if pd.isna(vm) or vm <= 0 or win['volume'].mean() >= vm:

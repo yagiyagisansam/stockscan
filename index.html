@@ -1177,12 +1177,12 @@ function render() {
 
   const stocks = (state.results && state.results.stocks) || [];
 
-  // 有効な手法でフィルタリング（単独 + 補助）
+  // 有効な手法でフィルタリング（単独手法のマッチが1件以上ある銘柄のみ表示。補助のみは非表示）
   const filtered = stocks.map(s => ({
     ...s,
     matches:    (s.matches    || []).filter(m => state.enabledMethods.has(m.key)),
     supporting: (s.supporting || []).filter(m => state.enabledMethods.has(m.key)),
-  })).filter(s => s.matches.length > 0 || s.supporting.length > 0);
+  })).filter(s => s.matches.length > 0);
 
   const resultCodes = new Set(stocks.map(s => s.code));
   const unanalyzed  = state.stocks
@@ -1193,11 +1193,11 @@ function render() {
     .filter(s => s.error)
     .map(s => ({ ...s, _dataerror: true }));
 
+  // 単独手法のマッチがない銘柄（補助のみの銘柄もこちらに含める）
   const unmatched = [
     ...stocks.filter(s =>
       !s.error &&
-      !(s.matches    || []).some(m => state.enabledMethods.has(m.key)) &&
-      !(s.supporting || []).some(m => state.enabledMethods.has(m.key))
+      !(s.matches || []).some(m => state.enabledMethods.has(m.key))
     ),
     ...withError,
     ...unanalyzed,
