@@ -1443,6 +1443,7 @@ function renderChart(chartId, dailyData, weeklyData) {
   const volSeries = volChart.addHistogramSeries({
     color: '#90CAF9',
     priceScaleId: 'volume',
+    priceFormat: { type: 'volume' },   // 軸ラベルを 48.65M 等の短縮表記にして軸幅を抑える
   });
   volSeries.priceScale().applyOptions({ scaleMargins: { top: 0.1, bottom: 0 } });
   volSeries.setData(data.map(d => ({
@@ -1450,7 +1451,27 @@ function renderChart(chartId, dailyData, weeklyData) {
     value: d.volume,
     color: d.close >= d.open ? 'rgba(198,40,40,.6)' : 'rgba(144,196,249,.7)',
   })));
+
+  // 出来高25日移動平均線（日足のみ）
+  const volMaSeries = volChart.addLineSeries({
+    color: '#F57C00', lineWidth: 1.5, priceScaleId: 'volume',
+    priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+  });
+  volMaSeries.setData(calcVolMa25(data));
+
   volChart.timeScale().setVisibleLogicalRange(_initRange);
+
+  // 価格チャートと出来高チャートの右軸幅を揃える（横軸の日付位置を一致させる）
+  const syncScaleWidth = () => {
+    try {
+      const w = Math.max(priceChart.priceScale('right').width(), volChart.priceScale('right').width());
+      if (w > 0) {
+        priceChart.applyOptions({ rightPriceScale: { minimumWidth: w } });
+        volChart.applyOptions({ rightPriceScale: { minimumWidth: w } });
+      }
+    } catch(e) {}
+  };
+  setTimeout(syncScaleWidth, 50);
 
   // リサイズ追従
   const ro = new ResizeObserver(() => {
@@ -1458,6 +1479,7 @@ function renderChart(chartId, dailyData, weeklyData) {
     if (w > 0) {
       priceChart.applyOptions({ width: w });
       volChart.applyOptions({ width: w });
+      syncScaleWidth();
     }
   });
   ro.observe(priceEl);
@@ -1473,13 +1495,26 @@ function renderChart(chartId, dailyData, weeklyData) {
   // チャートオブジェクト保存
   state.charts[chartId] = {
     priceChart, volChart,
-    candleSeries, ma5Series, ma25Series, ma75Series, volSeries,
+    candleSeries, ma5Series, ma25Series, ma75Series, volSeries, volMaSeries,
+    syncScaleWidth,
     dailyData,
     weeklyData: weeklyData || [],
     isWeekly: false,
     currentData: data,
     patternLines: [],
   };
+}
+
+// 出来高の25日移動平均を計算（{time, value} の配列を返す）
+function calcVolMa25(data) {
+  const out = [];
+  let sum = 0;
+  for (let i = 0; i < data.length; i++) {
+    sum += data[i].volume;
+    if (i >= 25) sum -= data[i - 25].volume;
+    if (i >= 24) out.push({ time: data[i].time, value: sum / 25 });
+  }
+  return out;
 }
 
 // ── 週足切り替え ──────────────────────────────────────────────
@@ -1500,10 +1535,13 @@ function toggleWeekly(chartId) {
     time: d.time, value: d.volume,
     color: d.close >= d.open ? 'rgba(198,40,40,.6)' : 'rgba(144,196,249,.7)',
   })));
+  // 出来高25日平均線は日足のみ（週足では非表示）
+  if (co.volMaSeries) co.volMaSeries.setData(co.isWeekly ? [] : calcVolMa25(data));
   const _toggleBars = co.isWeekly ? 52 : 65;
   const _toggleRange = { from: Math.max(0, data.length - _toggleBars), to: data.length + 2 };
   co.priceChart.timeScale().setVisibleLogicalRange(_toggleRange);
   co.volChart.timeScale().setVisibleLogicalRange(_toggleRange);
+  if (co.syncScaleWidth) setTimeout(co.syncScaleWidth, 50);
 
   // パターンオーバーレイをクリア
   (co.patternLines || []).forEach(s => { try { co.priceChart.removeSeries(s); } catch(e){} });
