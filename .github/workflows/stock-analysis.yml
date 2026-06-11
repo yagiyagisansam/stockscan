@@ -2,8 +2,8 @@ name: 株価テクニカル分析
 
 on:
   schedule:
-    # 毎日18:00 JST (= 09:00 UTC) 平日のみ
-    - cron: '0 9 * * 1-5'
+    - cron: '0 6 * * 1-5'   # 15:00 JST（市場引け）— 速報メール（常時送信）
+    - cron: '0 9 * * 1-5'   # 18:00 JST（夕方）    — マッチ銘柄がある場合のみ送信
   workflow_dispatch:
 
 jobs:
@@ -32,6 +32,8 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           TO_EMAIL:  ${{ secrets.TO_EMAIL }}
           SEND_EMAIL: ${{ github.event_name == 'schedule' && 'true' || 'false' }}
+          # 15:00 JST の cron のみ SEND_EMAIL_ALWAYS=true（マッチなしでも必ず送信）
+          SEND_EMAIL_ALWAYS: ${{ github.event.schedule == '0 6 * * 1-5' && 'true' || 'false' }}
         run: python scripts/analyze.py
 
       - name: 結果をコミット・プッシュ

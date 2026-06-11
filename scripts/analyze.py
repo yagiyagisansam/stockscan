@@ -1503,7 +1503,7 @@ def analyze_stock(code: str, name: str = '') -> dict | None:
 
 # ─── メール送信 ───────────────────────────────────────────────
 
-def send_email(matched: list[dict], date_str: str) -> None:
+def send_email(matched: list[dict], date_str: str, always: bool = False) -> None:
     smtp_host = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
     smtp_port = int(os.environ.get('SMTP_PORT', '587'))
     smtp_user = os.environ.get('SMTP_USER', '')
@@ -1515,7 +1515,12 @@ def send_email(matched: list[dict], date_str: str) -> None:
         return
 
     hit = len(matched)
-    subject = f"【StockScan JP】{date_str} 分析完了（一致 {hit} 銘柄）"
+    if always:
+        # 15:00 JST 速報：常時送信（マッチなし含む）
+        subject = f"【StockScan JP】{date_str} 引け後速報（一致 {hit} 銘柄）"
+    else:
+        # 18:00 JST 夕方レポート：マッチありのみ送信
+        subject = f"【StockScan JP】{date_str} 夕方レポート（一致 {hit} 銘柄）"
 
     lines = [
         "StockScan JP テクニカル分析レポート",
@@ -1631,9 +1636,16 @@ def main() -> None:
 
     print(f"\n分析完了: {len(matched)}/{len(results)} 銘柄一致")
 
-    send_email_flag = os.environ.get('SEND_EMAIL', 'true').lower() == 'true'
+    send_email_flag   = os.environ.get('SEND_EMAIL',        'false').lower() == 'true'
+    send_email_always = os.environ.get('SEND_EMAIL_ALWAYS', 'false').lower() == 'true'
+
     if send_email_flag:
-        send_email(matched, now.strftime('%Y/%m/%d'))
+        if send_email_always:
+            # 15:00 JST 速報：マッチなしでも必ず送信
+            send_email(matched, now.strftime('%Y/%m/%d'), always=True)
+        elif matched:
+            # 18:00 JST 夕方レポート：マッチ銘柄がある場合のみ送信
+            send_email(matched, now.strftime('%Y/%m/%d'), always=False)
 
 
 if __name__ == '__main__':
