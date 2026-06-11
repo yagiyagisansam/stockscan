@@ -1514,28 +1514,34 @@ def send_email(matched: list[dict], date_str: str) -> None:
         print("メール設定なし。スキップ。")
         return
 
-    subject = f"【StockScan JP】テクニカル一致 {date_str}（{len(matched)}銘柄）"
+    hit = len(matched)
+    subject = f"【StockScan JP】{date_str} 分析完了（一致 {hit} 銘柄）"
 
     lines = [
         "StockScan JP テクニカル分析レポート",
         f"日付: {date_str}",
-        f"一致銘柄数: {len(matched)} 件",
+        f"一致銘柄数: {hit} 件",
         "=" * 50,
     ]
-    for s in matched:
-        sign       = "+" if s['change'] >= 0 else ""
-        standalone = "、".join(m['label'] for m in s['matches'])
-        supplem    = "、".join(m['label'] for m in s.get('supporting', []))
-        lines += [
-            "",
-            f"■ {s['code']}  {s['name']}",
-            f"   終値 ¥{s['close']:,.0f}  ({sign}{s['change']:.1f}%)",
-        ]
-        if standalone:
-            lines += [f"   単独シグナル: {standalone}"]
-        if supplem:
-            lines += [f"   補助シグナル: {supplem}"]
-    lines += ["", "─" * 50, "https://yagiyagisansam.github.io/stocks.html"]
+    if hit == 0:
+        lines += ["", "本日は条件に一致する銘柄はありませんでした。"]
+    else:
+        for s in matched:
+            change = s.get('change') or 0.0
+            close  = s.get('close')  or 0.0
+            sign       = "+" if change >= 0 else ""
+            standalone = "、".join(m['label'] for m in s.get('matches', []))
+            supplem    = "、".join(m['label'] for m in s.get('supporting', []))
+            lines += [
+                "",
+                f"■ {s['code']}  {s['name']}",
+                f"   終値 ¥{close:,.0f}  ({sign}{change:.1f}%)",
+            ]
+            if standalone:
+                lines += [f"   単独シグナル: {standalone}"]
+            if supplem:
+                lines += [f"   補助シグナル: {supplem}"]
+    lines += ["", "─" * 50, "https://yagiyagisansam.github.io/stockscan/"]
 
     body = "\n".join(lines)
     msg  = MIMEMultipart()
@@ -1626,7 +1632,7 @@ def main() -> None:
     print(f"\n分析完了: {len(matched)}/{len(results)} 銘柄一致")
 
     send_email_flag = os.environ.get('SEND_EMAIL', 'true').lower() == 'true'
-    if matched and send_email_flag:
+    if send_email_flag:
         send_email(matched, now.strftime('%Y/%m/%d'))
 
 
