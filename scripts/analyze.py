@@ -13,7 +13,7 @@ import re
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 
 
@@ -1639,13 +1639,29 @@ def main() -> None:
     send_email_flag   = os.environ.get('SEND_EMAIL',        'false').lower() == 'true'
     send_email_always = os.environ.get('SEND_EMAIL_ALWAYS', 'false').lower() == 'true'
 
+    # ── 時刻ガード ──────────────────────────────────────────────
+    # GitHub Actions の schedule は混雑時に数時間遅延することがある。
+    # 想定時刻（JST）から大きく外れた実行ではメールを送らず深夜送信を防ぐ。
+    jst_now  = datetime.utcnow() + timedelta(hours=9)
+    date_str = jst_now.strftime('%Y/%m/%d')
+    target_hour = os.environ.get('TARGET_JST_HOUR', '')   # 15 or 18（scheduleのみ設定）
+    cutoff_hour = int(os.environ.get('CUTOFF_JST_HOUR', '22'))
+
+    if send_email_flag and target_hour:
+        th = int(target_hour)
+        in_window = (th <= jst_now.hour < cutoff_hour)
+        if not in_window:
+            print(f"⏰ 想定時刻({th}:00 JST)の窓外（現在 {jst_now.strftime('%H:%M')} JST）"
+                  f"のためメール送信をスキップ（GitHub schedule 遅延対策）")
+            send_email_flag = False
+
     if send_email_flag:
         if send_email_always:
             # 15:00 JST 速報：マッチなしでも必ず送信
-            send_email(matched, now.strftime('%Y/%m/%d'), always=True)
+            send_email(matched, date_str, always=True)
         elif matched:
             # 18:00 JST 夕方レポート：マッチ銘柄がある場合のみ送信
-            send_email(matched, now.strftime('%Y/%m/%d'), always=False)
+            send_email(matched, date_str, always=False)
 
 
 if __name__ == '__main__':
